@@ -1,12 +1,15 @@
 import json
+from flask_mongoengine import MongoEngine
 from auxiliary.nocache import nocache
 from auxiliary.cookie import Cookie
 from auxiliary.supervisor import Supervisor
+from auxiliary.mongoconfig import MongoConfig
 from flask import Flask, request, send_from_directory, make_response, redirect
 
 # Server configuration
 SERVER_HOST = 'localhost'
 SERVER_PORT = 5001
+DB_CONFIG = MongoConfig().get_values()
 
 # Sessions-related variables
 SESSION_COOKIE_LABEL = 'session_cookie'
@@ -15,6 +18,16 @@ SUPERVISOR = Supervisor()
 # Initailize application
 application = Flask(__name__)
 application.config.from_object(__name__)
+
+# Configure Database
+application.config['MONGODB_SETTINGS'] = {
+    'db': DB_CONFIG['name'],
+    'host': DB_CONFIG['host'],
+    'port': DB_CONFIG['port'],
+    'username': DB_CONFIG['user'],
+    'password': DB_CONFIG['pass']
+}
+db = MongoEngine(application)
 #application.config["APPLICATION_ROOT"] = '/api/1.0'
 
 def decode_request(request):
