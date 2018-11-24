@@ -4,6 +4,7 @@ from auxiliary.cookie import Cookie
 from auxiliary.supervisor import Supervisor
 from flask import Flask, request, send_from_directory, make_response, redirect
 
+SERVER_HOST = 'localhost'
 SERVER_PORT = 5001
 SESSION_COOKIE_LABEL = 'session_cookie'
 SUPERVISOR = Supervisor()
@@ -119,3 +120,6 @@ def get_artifacts():
     if valid_request(request.path, cookie, args) == False:
         return "Invalid request", 400
     return None
+
+if __name__ == '__main__':
+    application.run(host=SERVER_HOST, port=SERVER_PORT)
