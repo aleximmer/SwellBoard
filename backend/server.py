@@ -21,13 +21,12 @@ application = Flask(__name__)
 application.config.from_object(__name__)
 
 # Configure Database
-#mongo_url = "mongodb://{}:{}@{}/{}".format(
-#    DB_CONFIG['user'],
-#    DB_CONFIG['pass'],
-#    DB_CONFIG['host'],
-#    DB_CONFIG['name']
-#)
-mongo_url = "mongodb://swell:swellboard4tw@188.166.161.172/Swell"
+mongo_url = "mongodb://{}:{}@{}/{}".format(
+    DB_CONFIG['user'],
+    DB_CONFIG['pass'],
+    DB_CONFIG['host'],
+    DB_CONFIG['name']
+)
 db = MongoClient(mongo_url)
 #application.config["APPLICATION_ROOT"] = '/api/1.0'
 
@@ -126,7 +125,7 @@ def get_metric_names():
         return "Invalid request\n", 400
 
     metric_names = db['Swell']['runs'].find_one({'_id': args['run_id']}, {'info': 1})
-    metric_names = set([i['name'] for i in run_metric_names['info']['metrics']])
+    metric_names = set([i['name'] for i in metric_names['info']['metrics']])
 
     return encode_response(json_response(metric_names), cookie)
 
