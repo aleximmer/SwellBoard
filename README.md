@@ -28,15 +28,15 @@ without further adjustment. To return final metrics, the
 main of sacred should look as follows
 
 ```python
-@ex.automain  // or just main
+@ex.automain  # or just main
 def experiment(**kwargs)
     ...
-    // run model and collect metrics and artifacts as usual
+    # run model and collect metrics and artifacts as usual
     return {
         'acc': x,
-        'val-acc': y,
-        'metric_1': z,
         'max-acc': max(xs)
+        'val-acc': y,
+        'metric_1': z
     }
 ```
 
