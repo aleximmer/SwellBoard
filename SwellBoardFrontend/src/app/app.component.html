@@ -1,0 +1,89 @@
+<div class="swell-container" [class.swell-is-mobile]="mobileQuery.matches">
+    <mat-toolbar color="primary" class="swell-toolbar">
+        <h1 class="swell-app-name">{{title}}</h1>
+    </mat-toolbar>
+    <mat-toolbar color="accent" class="swell-toolbar">
+        <button color="primary" mat-raised-button (click)="snavmodel.toggle()">Models</button>
+        <span class="swell-spacer"></span>
+        <button color="primary" mat-raised-button (click)="snavmetrics.toggle()">Metrics</button>
+    </mat-toolbar>
+
+    <mat-sidenav-container class="swell-sidenav-container" [style.marginTop.px]="mobileQuery.matches ? 56 : 0">
+        <mat-sidenav #snavmodel [mode]="over" [fixedInViewport]="mobileQuery.matches" fixedTopGap="56" opened="true">
+            <div class="swell-sidenav-content">
+                <h3 class="swell-sidenav-content-title">Models</h3>
+                <mat-divider></mat-divider>
+                <div class="swell-table-div">
+                    <mat-form-field>
+                        <input matInput (keyup)="applyFilterModel($event.target.value)" placeholder="Filter Models">
+                    </mat-form-field>
+                    <table mat-table [dataSource]="modelDataSource" class="swell-table">
+                        <ng-container matColumnDef="select">
+                            <th mat-header-cell *matHeaderCellDef>
+                                <mat-checkbox (change)="$event ? masterToggleModel() : null" [checked]="modelSelection.hasValue() && isAllModelSelected()" [indeterminate]="modelSelection.hasValue() && !isAllModelSelected()">
+                                </mat-checkbox>
+                            </th>
+                            <td mat-cell *matCellDef="let row">
+                                <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? modelSelection.toggle(row) : null" [checked]="modelSelection.isSelected(row)">
+                                </mat-checkbox>
+                            </td>
+                        </ng-container>
+                        <ng-container matColumnDef="Tag">
+                            <th mat-header-cell *matHeaderCellDef> Tag </th>
+                            <td mat-cell *matCellDef="let model"> {{model.model_tag}} </td>
+                        </ng-container>
+                        <tr mat-header-row *matHeaderRowDef="modelDisplayedColumns"></tr>
+                        <tr mat-row *matRowDef="let row; columns: modelDisplayedColumns;">
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div class="swell-sidenav-content">
+                <h3 class="swell-sidenav-content-title">Experiments</h3>
+                <mat-divider></mat-divider>
+                <div class="swell-table-div">
+                    <mat-form-field>
+                        <input matInput (keyup)="applyFilterExperiment($event.target.value)" placeholder="Filter Experiments">
+                    </mat-form-field>
+                    <table mat-table [dataSource]="experimentDataSource" class="swell-table">
+                        <ng-container matColumnDef="select">
+                            <th mat-header-cell *matHeaderCellDef>
+                                <mat-checkbox (change)="$event ? masterToggleExperiment() : null" [checked]="experimentSelection.hasValue() && isAllExperimentSelected()" [indeterminate]="experimentSelection.hasValue() && !isAllExperimentSelected()">
+                                </mat-checkbox>
+                            </th>
+                            <td mat-cell *matCellDef="let row">
+                                <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? experimentSelection.toggle(row) : null" [checked]="experimentSelection.isSelected(row)">
+                                </mat-checkbox>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="id">
+                            <th mat-header-cell *matHeaderCellDef> ID </th>
+                            <td mat-cell *matCellDef="let exp"> {{exp.id}} </td>
+                        </ng-container>
+                        <ng-container matColumnDef="date">
+                            <th mat-header-cell *matHeaderCellDef> Date </th>
+                            <td mat-cell *matCellDef="let exp"> {{exp.date}} </td>
+                        </ng-container>
+                        <ng-container matColumnDef="details">
+                            <th mat-header-cell *matHeaderCellDef> Details </th>
+                            <td mat-cell *matCellDef="let exp">
+                                <button (click)="openExperimentDetails($event)" color="primary" mat-raised-button value={{exp.id}}>
+                                    <mat-icon>search</mat-icon>
+                                </button>
+                            </td>
+                        </ng-container>
+                        <tr mat-header-row *matHeaderRowDef="experimentDisplayedColumns"></tr>
+                        <tr mat-row *matRowDef="let row; columns: experimentDisplayedColumns;">
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </mat-sidenav>
+        <mat-sidenav #snavmetrics position="end" [mode]="over" [fixedInViewport]="mobileQuery.matches" fixedTopGap="56">
+            <div class="swell-sidenav-content"></div>
+        </mat-sidenav>
+        <mat-sidenav-content>
+        </mat-sidenav-content>
+    </mat-sidenav-container>
+</div>
