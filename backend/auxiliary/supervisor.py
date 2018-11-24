@@ -1,7 +1,7 @@
 ARGS = {
     '/login': ['username'],
     '/models': [],
-    '/runs': ['model_names'],
+    '/runs': ['model_name'],
     '/metrics/names': ['run_id'],
     '/metrics/scalars': ['run_id', 'metric_name'],
     '/results/names': ['run_id'],
