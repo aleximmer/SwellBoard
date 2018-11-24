@@ -55,75 +55,78 @@ def valid_request(path, cookie, args):
 def login():
     cookie, args = decode_request(request)
     if SUPERVISOR.validate_arguments(request.path, args) == False:
-        return "Necessary parameter 'username' not found", 400
+        return "Necessary parameter 'username' not found\n", 400
     if SUPERVISOR.validate_cookie(cookie) == False:
         cookie = Cookie(args['username'])
         response = make_response("Loged in", 200)
         return encode_response(response, cookie)
-    return "Re-authentication not allowed", 403
+    return "Re-authentication not allowed\n", 403
 
 @application.route('/models', methods=['GET'])
 def get_models():
     cookie, args = decode_request(request)
     if valid_request(request.path, cookie, args) == False:
-        return "Invalid request", 400
-    return None
+        return "Invalid request\n", 400
+    return encode_response(not_implemented(), cookie)
 
 @application.route('/runs', methods=['GET'])
 def get_runs():
     cookie, args = decode_request(request)
     if valid_request(request.path, cookie, args) == False:
-        return "Invalid request", 400
-    return None
+        return "Invalid request\n", 400
+    return encode_response(not_implemented(), cookie)
 
 @application.route('/metrics/names', methods=['GET'])
 def get_metric_names():
     cookie, args = decode_request(request)
     if valid_request(request.path, cookie, args) == False:
-        return "Invalid request", 400
-    return None
+        return "Invalid request\n", 400
+    return encode_response(not_implemented(), cookie)
 
 @application.route('/metrics/scalars', methods=['GET'])
 def get_metric_scalars():
     cookie, args = decode_request(request)
     if valid_request(request.path, cookie, args) == False:
-        return "Invalid request", 400
-    return None
+        return "Invalid request\n", 400
+    return encode_response(not_implemented(), cookie)
 
 @application.route('/results/names', methods=['GET'])
 def get_result_names():
     cookie, args = decode_request(request)
     if valid_request(request.path, cookie, args) == False:
-        return "Invalid request", 400
-    return None
+        return "Invalid request\n", 400
+    return encode_response(not_implemented(), cookie)
 
 @application.route('/results/scalars', methods=['GET'])
 def get_result_scalars():
     cookie, args = decode_request(request)
     if valid_request(request.path, cookie, args) == False:
-        return "Invalid request", 400
-    return None
+        return "Invalid request\n", 400
+    return encode_response(not_implemented(), cookie)
 
 @application.route('/params/names', methods=['GET'])
 def get_param_names():
     cookie, args = decode_request(request)
     if valid_request(request.path, cookie, args) == False:
-        return "Invalid request", 400
-    return None
+        return "Invalid request\n", 400
+    return encode_response(not_implemented(), cookie)
 
 @application.route('/params/scalars', methods=['GET'])
 def get_param_scalars():
     cookie, args = decode_request(request)
     if valid_request(request.path, cookie, args) == False:
-        return "Invalid request", 400
-    return None
+        return "Invalid request\n", 400
+    return encode_response(not_implemented(), cookie)
 
 @application.route('/artifacts', methods=['GET'])
 def get_artifacts():
     cookie, args = decode_request(request)
     if valid_request(request.path, cookie, args) == False:
-        return "Invalid request", 400
-    return None
+        return "Invalid request\n", 400
+    return encode_response(not_implemented(), cookie)
+
+def not_implemented():
+    return make_response("Method not implemented\n", 403)
 
 if __name__ == '__main__':
     application.run(host=SERVER_HOST, port=SERVER_PORT)
