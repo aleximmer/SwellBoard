@@ -11,7 +11,7 @@ tag within the named configuration.
 @ex.named_config
 def swell():
     model_tag = "Neural Network"
-``
+```
 
 Several experiments can have the same tag and would ideally
 conform to the same structure. For example, the tag _Neural Network_
