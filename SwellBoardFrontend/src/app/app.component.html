@@ -6,8 +6,13 @@
     <mat-toolbar color="accent" class="swell-toolbar swell-second">
         <mat-progress-bar mode="buffer"></mat-progress-bar>
     </mat-toolbar>
+    <mat-toolbar color="primary" class="swell-toolbar">
+        <button (click)="snavmodel.toggle()" mat-raised-button>Models</button>
+        <span class="swell-spacer"></span>
+        <button class="pull-right" (click)="snavmetrics.toggle()" mat-raised-button>Models</button>
+    </mat-toolbar>
     <mat-sidenav-container class="swell-sidenav-container" [style.marginTop.px]="mobileQuery.matches ? 56 : 0">
-        <mat-sidenav style="border-right: 1px solid black;" #snavmodel [mode]="push" [fixedInViewport]="mobileQuery.matches" fixedTopGap="56" opened="true" disableClose="true">
+        <mat-sidenav style="border-right: 1px solid black;" #snavmodel [mode]="push" [fixedInViewport]="mobileQuery.matches" fixedTopGap="56" opened="true">
             <div class="swell-sidenav-content">
                 <h3 class="swell-sidenav-content-title">Models</h3>
                 <mat-divider></mat-divider>
@@ -90,7 +95,7 @@
                 </div>
             </div>
         </mat-sidenav>
-        <mat-sidenav style="border-left: 1px solid black;" #snavmetrics position="end" [mode]="push" disableClose="true" [fixedInViewport]="mobileQuery.matches" fixedTopGap="56" opened="true">
+        <mat-sidenav style="border-left: 1px solid black;" #snavmetrics position="end" [mode]="push" [fixedInViewport]="mobileQuery.matches" fixedTopGap="56" opened="true">
             <div class="swell-sidenav-content">
                 <h3 class="swell-sidenav-content-title">Metrics</h3>
                 <mat-divider></mat-divider>

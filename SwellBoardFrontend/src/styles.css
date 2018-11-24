@@ -109,9 +109,13 @@ table.swell-table {
 
 svg.ngx-charts {
     width: 80%;
-    height: 350px;
+    height: 450px;
 }
 
 .ngx-charts text {
     fill: #fff;
+}
+
+.ngx-charts .gridline-path {
+    stroke: gray !important;
 }
