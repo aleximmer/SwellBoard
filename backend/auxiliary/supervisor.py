@@ -19,9 +19,9 @@ class Supervisor:
     def validate_cookie(self, cookie):
         if cookie is None:
             return False
-        if cookie.username is None:
+        if cookie.user_id is None:
             return False
-        if len(cookie.username) <= 0:
+        if len(cookie.user_id) <= 0:
             return False
         return True
 
