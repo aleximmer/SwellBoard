@@ -1,5 +1,5 @@
 import json
-from auxiliary import nocache
+from auxiliary.nocache import nocache
 from auxiliary.cookie import Cookie
 from auxiliary.supervisor import Supervisor
 from flask import Flask, request, send_from_directory, make_response, redirect
