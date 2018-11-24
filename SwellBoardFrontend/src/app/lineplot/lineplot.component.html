@@ -1,3 +1,9 @@
-<p>
-    lineplot works! {{hello}}
-</p>
+<div *ngFor="let data of ngxData">
+    <div class="row ng-row" *ngIf="(data.data[0].series.length > 0)">
+        <div class="col-lg-6 col-sm-12 ng-div">
+            <ngx-charts-line-chart [roundDomains]="true" [timeline]="true" [results]="data.data" [xAxis]="showXAxis" [yAxis]="showYAxis" [legend]="false" [showXAxisLabel]="showXAxisLabel" [showYAxisLabel]="showYAxisLabel" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel"
+                [autoScale]="autoScale" (select)="onPointSelected($event)" (activate)="onPointActivated($event)">
+            </ngx-charts-line-chart>
+        </div>
+    </div>
+</div>

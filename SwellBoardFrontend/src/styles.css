@@ -1,7 +1,13 @@
 /* You can add global styles to this file, and also import other style files */
 
 @import url('https://fonts.googleapis.com/css?family=Montserrat|Material+Icons');
-@import '@angular/material/prebuilt-themes/deeppurple-amber.css';
+
+/* @import '@angular/material/prebuilt-themes/deeppurple-amber.css'; */
+
+
+/* @import '@angular/material/prebuilt-themes/pink-bluegrey.css'; */
+
+@import '@angular/material/prebuilt-themes/purple-green.css';
 body {
     margin: 0px;
     font-family: 'Montserrat', sans-serif;
@@ -31,7 +37,7 @@ body {
 }
 
 .mat-drawer-inner-container {
-    width: 400px !important;
+    width: 350px !important;
 }
 
 .swell-is-mobile .swell-toolbar {
@@ -67,4 +73,36 @@ table.swell-table {
 
 .swell-table-div {
     padding: 1.5rem;
+}
+
+.mat-expansion-panel {
+    box-shadow: none !important;
+}
+
+.swell-viewport {
+    height: 450px;
+}
+
+.artifact_img {
+    display: block;
+    margin: auto;
+    border-radius: 4%;
+    margin-bottom: 1rem;
+}
+
+.artifact_key {
+    display: block;
+    margin: 1rem 1rem;
+}
+
+.mat-drawer-backdrop.mat-drawer-shown {
+    background-color: transparent !important;
+}
+
+.swell-second {
+    height: 8px !important;
+}
+
+.mat-drawer:not(.mat-drawer-side) {
+    box-shadow: none;
 }
