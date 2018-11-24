@@ -1,0 +1,41 @@
+<div style="min-width: 900px;">
+    <div>
+        <h3>Date: {{data.date}} <small class="pull-right">Experiment: {{data.id}}</small></h3>
+    </div>
+    <mat-divider></mat-divider>
+    <mat-expansion-panel style="margin-top: 1rem">
+        <mat-expansion-panel-header>
+            <mat-panel-title>
+                Configuration
+            </mat-panel-title>
+            <mat-panel-description>
+                Check the configuration of your experiment
+            </mat-panel-description>
+        </mat-expansion-panel-header>
+
+        <mat-list>
+            <mat-list-item *ngFor="let config of data.config | mapToArray">
+                <p><span>{{config.key}}</span>:<span style="margin-left: 2rem;">{{config.value}}</span></p>
+            </mat-list-item>
+        </mat-list>
+    </mat-expansion-panel>
+    <mat-expansion-panel>
+        <mat-expansion-panel-header>
+            <mat-panel-title>
+                Artifacts
+            </mat-panel-title>
+            <mat-panel-description>
+                View the artifacts of your experiment
+            </mat-panel-description>
+        </mat-expansion-panel-header>
+        <cdk-virtual-scroll-viewport itemSize="450" class="swell-viewport">
+            <mat-divider></mat-divider>
+            <div *ngFor="let config of data.artifacts | mapToArray">
+                <h4 class="artifact_key">{{config.key}}</h4>
+                <img src="/assets/kumma.jpg" alt="Kumma" class="artifact_img" width="50%">
+                <mat-divider></mat-divider>
+            </div>
+        </cdk-virtual-scroll-viewport>
+
+    </mat-expansion-panel>
+</div>

@@ -1,0 +1,117 @@
+/* You can add global styles to this file, and also import other style files */
+
+@import url('https://fonts.googleapis.com/css?family=Montserrat|Material+Icons');
+
+/* @import '@angular/material/prebuilt-themes/deeppurple-amber.css'; */
+
+
+/* @import '@angular/material/prebuilt-themes/pink-bluegrey.css'; */
+
+@import '@angular/material/prebuilt-themes/purple-green.css';
+body {
+    margin: 0px;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.swell-container {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+.swell-spacer {
+    flex: 1 1 auto;
+}
+
+.swell-sidenav-content {
+    padding: 1rem;
+}
+
+.swell-sidenav-content-title {
+    margin: 0px;
+    padding: 1rem;
+}
+
+.mat-drawer-inner-container {
+    width: 350px !important;
+}
+
+.swell-is-mobile .swell-toolbar {
+    position: fixed;
+    /* Make sure the toolbar will stay on top of the content as it scrolls past. */
+    z-index: 2;
+}
+
+h1.swell-app-name {
+    margin-left: 8px;
+}
+
+.swell-sidenav-container {
+    /* When the sidenav is not fixed, stretch the sidenav container to fill the available space. This
+       causes `<mat-sidenav-content>` to act as our scrolling element for desktop layouts. */
+    flex: 1;
+}
+
+.swell-is-mobile .swell-sidenav-container {
+    /* When the sidenav is fixed, don't constrain the height of the sidenav container. This allows the
+       `<body>` to be our scrolling element for mobile layouts. */
+    flex: 1 0 auto;
+}
+
+table.swell-table {
+    width: 100%;
+}
+
+.mat-form-field {
+    font-size: 14px;
+    width: 100%;
+}
+
+.swell-table-div {
+    padding: 1.5rem;
+}
+
+.mat-expansion-panel {
+    box-shadow: none !important;
+}
+
+.swell-viewport {
+    height: 450px;
+}
+
+.artifact_img {
+    display: block;
+    margin: auto;
+    border-radius: 4%;
+    margin-bottom: 1rem;
+}
+
+.artifact_key {
+    display: block;
+    margin: 1rem 1rem;
+}
+
+.mat-drawer-backdrop.mat-drawer-shown {
+    background-color: transparent !important;
+}
+
+.swell-second {
+    height: 8px !important;
+}
+
+.mat-drawer:not(.mat-drawer-side) {
+    box-shadow: none;
+}
+
+svg.ngx-charts {
+    width: 80%;
+    height: 350px;
+}
+
+.ngx-charts text {
+    fill: #fff;
+}
