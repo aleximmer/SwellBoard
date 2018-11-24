@@ -4,15 +4,18 @@ from auxiliary.cookie import Cookie
 from auxiliary.supervisor import Supervisor
 from flask import Flask, request, send_from_directory, make_response, redirect
 
+# Server configuration
 SERVER_HOST = 'localhost'
 SERVER_PORT = 5001
+
+# Sessions-related variables
 SESSION_COOKIE_LABEL = 'session_cookie'
 SUPERVISOR = Supervisor()
 
 # Initailize application
 application = Flask(__name__)
 application.config.from_object(__name__)
-application.config["APPLICATION_ROOT"] = '/api/1.0'
+#application.config["APPLICATION_ROOT"] = '/api/1.0'
 
 def decode_request(request):
     '''
@@ -23,7 +26,8 @@ def decode_request(request):
     request's arguments (both for POST
     and GET methods).
     '''
-    session_cookie = request.cookies.get('session_cookie', None)
+    encoded_cookie = request.cookies.get('session_cookie', None)
+    session_cookie = Cookie().decode(encoded_cookie)
     request_arguments = request.form if (request.method == 'POST') else request.args
     return session_cookie, request_arguments
 
@@ -54,7 +58,7 @@ def login():
         return "Necessary parameter 'username' not found", 400
     if SUPERVISOR.validate_cookie(cookie) == False:
         cookie = Cookie(args['username'])
-        response = make_response(200)
+        response = make_response("Loged in", 200)
         return encode_response(response, cookie)
     return "Re-authentication not allowed", 403
 
