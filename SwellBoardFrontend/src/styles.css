@@ -106,3 +106,12 @@ table.swell-table {
 .mat-drawer:not(.mat-drawer-side) {
     box-shadow: none;
 }
+
+svg.ngx-charts {
+    width: 80%;
+    height: 350px;
+}
+
+.ngx-charts text {
+    fill: #fff;
+}

@@ -126,16 +126,16 @@ export class AppComponent {
       { name: 'Model 2: ' + name, series: [{ name: 1, value: 10, id: 2 }, { name: 2, value: 15, id: 2 }, { name: 3, value: 20, id: 2 }] },
       { name: 'Model 3: ' + name, series: [{ name: 1, value: 5, id: 3 }, { name: 2, value: 5, id: 3 }, { name: 3, value: 5, id: 3 }] }],
     });
-
-    // this.linePlot.setXLabel('Time');
-    // this.linePlot.setYLabel('Smoked Pots');
-    // this.linePlot.setNgxData(this.linePlotData);
   }
 
   // tslint:disable-next-line:use-life-cycle-interface
   ngOnInit(): void {
     this.experimentDataSource.paginator = this.experimentPaginator;
     this.modelDataSource.paginator = this.modelPaginator;
+
+    this.linePlot.setXLabel('Time');
+    this.linePlot.setYLabel('Smoked Pots');
+    this.linePlot.setNgxData(this.linePlotData);
   }
   // tslint:disable-next-line:use-life-cycle-interface
   ngOnDestroy(): void {
