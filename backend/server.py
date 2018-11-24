@@ -1,12 +1,16 @@
 import json
+from flask import jsonify
+from pymongo import MongoClient
 from auxiliary.nocache import nocache
 from auxiliary.cookie import Cookie
 from auxiliary.supervisor import Supervisor
+from auxiliary.mongoconfig import MongoConfig
 from flask import Flask, request, send_from_directory, make_response, redirect
 
 # Server configuration
 SERVER_HOST = 'localhost'
 SERVER_PORT = 5001
+DB_CONFIG = MongoConfig().get_values()
 
 # Sessions-related variables
 SESSION_COOKIE_LABEL = 'session_cookie'
@@ -15,6 +19,15 @@ SUPERVISOR = Supervisor()
 # Initailize application
 application = Flask(__name__)
 application.config.from_object(__name__)
+
+# Configure Database
+mongo_url = "mongodb://{}:{}@{}/{}".format(
+    DB_CONFIG['user'],
+    DB_CONFIG['pass'],
+    DB_CONFIG['host'],
+    DB_CONFIG['name']
+)
+db = MongoClient(mongo_url)
 #application.config["APPLICATION_ROOT"] = '/api/1.0'
 
 def decode_request(request):
@@ -53,6 +66,16 @@ def valid_request(path, cookie, args):
 @application.route('/login', methods=['POST'])
 @nocache
 def login():
+    '''
+    This method takes care of registering a
+    user and returning a valid cookie.
+
+    Parameters:
+        username <desired loggin username>
+    
+    Return:
+        None
+    '''
     cookie, args = decode_request(request)
     if SUPERVISOR.validate_arguments(request.path, args) == False:
         return "Necessary parameter 'username' not found\n", 400
@@ -64,31 +87,58 @@ def login():
 
 @application.route('/models', methods=['GET'])
 def get_models():
+    '''
+    This method takes care of querying all
+    the models from a user.
+
+    Parameters:
+        None
+
+    Return:
+        JSON encoded list of all models.
+    '''
     cookie, args = decode_request(request)
     if valid_request(request.path, cookie, args) == False:
         return "Invalid request\n", 400
-    return encode_response(not_implemented(), cookie)
+
+    models = db['Swell']['runs'].find({}, {'config': 1})
+    models = set([i['config']['method_tag'] for i in models])
+
+    return encode_response(json_response(models), cookie)
 
 @application.route('/runs', methods=['GET'])
 def get_runs():
     cookie, args = decode_request(request)
     if valid_request(request.path, cookie, args) == False:
         return "Invalid request\n", 400
-    return encode_response(not_implemented(), cookie)
+
+    # TODO rename "_id" key to "id"
+    runs = db['Swell']['runs'].find({'status': 'COMPLETED'}, {'heartbeat': 1})
+    runs = list(runs)
+
+    return encode_response(json_response(runs), cookie)
 
 @application.route('/metrics/names', methods=['GET'])
 def get_metric_names():
     cookie, args = decode_request(request)
     if valid_request(request.path, cookie, args) == False:
         return "Invalid request\n", 400
-    return encode_response(not_implemented(), cookie)
+
+    metric_names = db['Swell']['runs'].find_one({'_id': args['run_id']}, {'info': 1})
+    metric_names = set([i['name'] for i in metric_names['info']['metrics']])
+
+    return encode_response(json_response(metric_names), cookie)
 
 @application.route('/metrics/scalars', methods=['GET'])
 def get_metric_scalars():
     cookie, args = decode_request(request)
     if valid_request(request.path, cookie, args) == False:
         return "Invalid request\n", 400
-    return encode_response(not_implemented(), cookie)
+
+    run_metric = db['Swell']['metrics'].find_one({'run_id': args['run_id']}, {'name': args['metric_name']})
+    run_metric['name'] = db['Swell']['runs'].find_one({'_id': args['run_id']}, {'config': 1})['config']['methd_tag'] + '-{}'.format(run_id)
+
+    return encode_response(json_response(run_metric), cookie)
 
 @application.route('/results/names', methods=['GET'])
 def get_result_names():
@@ -124,6 +174,14 @@ def get_artifacts():
     if valid_request(request.path, cookie, args) == False:
         return "Invalid request\n", 400
     return encode_response(not_implemented(), cookie)
+
+def json_response(dictionary):
+    data = dictionary
+    if type(data) is list:
+        data = {'data': data}
+    elif type(data) is set:
+        data = {'data': list(data)}
+    return jsonify(data)
 
 def not_implemented():
     return make_response("Method not implemented\n", 403)

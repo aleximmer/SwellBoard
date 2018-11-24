@@ -1,13 +1,13 @@
 ARGS = {
     '/login': ['username'],
     '/models': [],
-    '/runs': [],
-    '/metrics/names': ['run_ids'],
-    '/metrics/scalars': ['run_ids', 'metric_name'],
-    '/results/names': ['run_ids'],
-    '/results/scalars': ['run_ids', 'result_name'],
-    '/params/names': ['run_ids'],
-    '/params/scalars': ['run_ids', 'param_name'],
+    '/runs': ['model_name'],
+    '/metrics/names': ['run_id'],
+    '/metrics/scalars': ['run_id', 'metric_name'],
+    '/results/names': ['run_id'],
+    '/results/scalars': ['run_id', 'result_name'],
+    '/params/names': ['run_id'],
+    '/params/scalars': ['run_id', 'param_name'],
     '/artifacts': ['run_id']
 }
 
