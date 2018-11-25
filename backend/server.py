@@ -112,8 +112,7 @@ def get_runs():
     if valid_request(request.path, cookie, args) == False:
         return "Invalid request\n", 400
 
-    # TODO rename "_id" key to "id"
-    runs = db['Swell']['runs'].find({'status': 'COMPLETED'}, {'heartbeat': 1})
+    runs = client['Swell']['runs'].find({'config.method_tag': args['model_name']}, {'config': 1})
     runs = list(runs)
 
     return encode_response(json_response(runs), cookie)
@@ -145,34 +144,58 @@ def get_result_names():
     cookie, args = decode_request(request)
     if valid_request(request.path, cookie, args) == False:
         return "Invalid request\n", 400
-    return encode_response(not_implemented(), cookie)
+
+    result_names = db['Swell']['runs'].find_one({'_id': args['run_id']}, {'result': 1})['result'].keys()
+    result_names = list(result_names)
+
+    return encode_response(json_response(result_names), cookie)
 
 @application.route('/results/scalars', methods=['GET'])
 def get_result_scalars():
     cookie, args = decode_request(request)
     if valid_request(request.path, cookie, args) == False:
         return "Invalid request\n", 400
-    return encode_response(not_implemented(), cookie)
+
+    result_scalars = db['Swell']['runs'].find_one({'_id': args['run_id']}, {'result': 1})['result'][args['result_name']]
+    result_scalars = list(result_scalars)
+
+    return encode_response(json_response(result_scalars), cookie)
 
 @application.route('/params/names', methods=['GET'])
 def get_param_names():
     cookie, args = decode_request(request)
     if valid_request(request.path, cookie, args) == False:
         return "Invalid request\n", 400
-    return encode_response(not_implemented(), cookie)
+
+    param_names = db['Swell']['runs'].find_one({'_id': args['run_id']}, {'config': 1})
+    param_names = list(param_names)
+
+    return encode_response(json_response(param_names), cookie)
 
 @application.route('/params/scalars', methods=['GET'])
 def get_param_scalars():
     cookie, args = decode_request(request)
     if valid_request(request.path, cookie, args) == False:
         return "Invalid request\n", 400
-    return encode_response(not_implemented(), cookie)
+
+    param_scalars = db['Swell']['runs'].find_one({'_id': args['run_id']}, {'result': 1})['result'][args['param_name']]
+    param_scalars = list(param_scalars)
+
+    return encode_response(json_response(param_scalars), cookie)
 
 @application.route('/artifacts', methods=['GET'])
 def get_artifacts():
     cookie, args = decode_request(request)
     if valid_request(request.path, cookie, args) == False:
         return "Invalid request\n", 400
+
+    fs = gridfs.GridFS(client['Swell'])
+    artifacts = []
+    for file in client['Swell']['runs'].find_one({'_id': args['run_id']}, {'artifacts'})['artifacts']:
+        if '.png' in file['name']:
+            fig = fs.get(file['file_id']).read()
+    artifacts.append(fig)
+
     return encode_response(not_implemented(), cookie)
 
 def json_response(dictionary):
