@@ -41,7 +41,7 @@ export class AppComponent {
   @ViewChild('swellcontainer', { read: ViewContainerRef }) _vcr;
 
   linePlots = {};
-  isVisible = false;
+  isVisible;
   parallelPlot;
 
   mobileQuery: MediaQueryList;
@@ -185,10 +185,7 @@ export class AppComponent {
   }
 
   plotComparison() {
-    if (this.parallelPlot !== undefined) {
-      this.parallelPlot.dispose();
-    }
-
+    this.parallelPlot.clear();
     this.isVisible = true;
     const option = {
       parallelAxis: [],
@@ -308,8 +305,9 @@ export class AppComponent {
 
   // tslint:disable-next-line:use-life-cycle-interface
   ngOnInit(): void {
-    this.parallelPlot = this.echarts.init(document.getElementById('metrics_line'), 'dark');
 
+    this.parallelPlot = this.echarts.init(document.getElementById('metrics_line'), 'dark');
+    this.isVisible = false;
     // initialize echarts instance with prepared DOM
     this.apiService.getModels().subscribe((response) => {
       this.modelDataSource = new MatTableDataSource<Model>();
