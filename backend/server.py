@@ -117,7 +117,7 @@ def get_runs():
     if valid_request(request.path, cookie, args) == False:
         return "Invalid request\n", 400
 
-    runs = db['Swell']['runs'].find({'config.method_tag': args['model_name']}, {'config': 1})
+    runs = db['Swell']['runs'].find({'config.method_tag': args['model_name']}, {'config': 1, 'heartbeat': 1})
     runs = list(runs)
 
     return encode_response(json_response(runs), cookie)
