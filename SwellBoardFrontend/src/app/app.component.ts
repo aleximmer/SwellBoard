@@ -6,6 +6,7 @@ import { ExpdetailsComponent } from './expdetails/expdetails.component';
 import { HttpClient } from '@angular/common/http';
 import { LineplotComponent } from './lineplot/lineplot.component';
 import { rgb } from 'd3';
+import { ApiServiceService } from './api/api-service.service';
 
 export interface Model {
   model_tag: string;
@@ -13,7 +14,7 @@ export interface Model {
 }
 
 export interface Experiment {
-  id: number;
+  _id: number;
   date: string;
   config: Object;
   artifacts: Object;
@@ -22,24 +23,24 @@ export interface Experiment {
 }
 
 const MODEL: Model[] = [
-  { model_tag: 'CNN', nexp: 5 },
-  { model_tag: 'LSTM', nexp: 3 },
-  { model_tag: 'GRU', nexp: 2 },
-  { model_tag: 'GRU2', nexp: 10 },
-  { model_tag: 'GCN', nexp: 3 },
-  { model_tag: 'VAE', nexp: 1 },
+  { model_tag: 'CNN', nexp: 0 },
+  { model_tag: 'LSTM', nexp: 0 },
+  { model_tag: 'GRU', nexp: 0 },
+  { model_tag: 'GRU2', nexp: 0 },
+  { model_tag: 'GCN', nexp: 0 },
+  { model_tag: 'VAE', nexp: 0 },
 ];
 
 const EXPERIMENTS: Experiment[] = [
   {
-    id: 1, model_tag: 'CNN', date: 'Today', config: { yo: 'value_1', ya: 'value_2' },
+    _id: 1, model_tag: 'CNN', date: 'Today', config: { yo: 'value_1', ya: 'value_2' },
     artifacts: { art1: 'artifact1.png', art2: 'artifact2.png' }, comment: 'Deutschland über alles.'
   },
-  { id: 2, model_tag: 'CNN', date: 'Yesterday', config: {}, artifacts: {}, comment: 'Deutschland über alles.' },
-  { id: 3, model_tag: 'CNN', date: 'Wednesday', config: {}, artifacts: {}, comment: 'Deutschland über alles.' },
-  { id: 4, model_tag: 'CNN', date: 'Thursday', config: {}, artifacts: {}, comment: 'Deutschland über alles.' },
-  { id: 4, model_tag: 'CNN', date: 'Thursday', config: {}, artifacts: {}, comment: 'Deutschland über alles.' },
-  { id: 5, model_tag: 'CNN', date: 'Friday', config: {}, artifacts: {}, comment: 'Deutschland über alles.' },
+  { _id: 2, model_tag: 'CNN', date: 'Yesterday', config: {}, artifacts: {}, comment: 'Deutschland über alles.' },
+  { _id: 3, model_tag: 'CNN', date: 'Wednesday', config: {}, artifacts: {}, comment: 'Deutschland über alles.' },
+  { _id: 4, model_tag: 'CNN', date: 'Thursday', config: {}, artifacts: {}, comment: 'Deutschland über alles.' },
+  { _id: 4, model_tag: 'CNN', date: 'Thursday', config: {}, artifacts: {}, comment: 'Deutschland über alles.' },
+  { _id: 5, model_tag: 'CNN', date: 'Friday', config: {}, artifacts: {}, comment: 'Deutschland über alles.' },
 ];
 
 @Component({
@@ -49,6 +50,8 @@ const EXPERIMENTS: Experiment[] = [
 })
 export class AppComponent {
   title = 'Swellboard';
+
+  runs = [];
 
   echarts = require('echarts');
 
@@ -63,15 +66,19 @@ export class AppComponent {
 
   @ViewChild('expPaginator') experimentPaginator: MatPaginator;
   @ViewChild('modelPaginator') modelPaginator: MatPaginator;
+  @ViewChild('metricPaginator') metricPaginator: MatPaginator;
 
   modelDisplayedColumns: string[] = ['select', 'Tag', 'nexp'];
-  experimentDisplayedColumns: string[] = ['select', 'details', 'id', 'tag', 'date'];
+  experimentDisplayedColumns: string[] = ['select', 'details', 'id', 'tag'];
+  metricDisplayedColumns: string[] = ['select', 'metric'];
 
-  modelDataSource = new MatTableDataSource<Model>(MODEL);
-  experimentDataSource = new MatTableDataSource<Experiment>(EXPERIMENTS);
+  modelDataSource;
+  experimentDataSource; // = new MatTableDataSource<Experiment>(EXPERIMENTS);
+  metricDataSource; // = new MatTableDataSource<Experiment>(EXPERIMENTS);
 
   modelSelection = new SelectionModel<Model>(true, []);
   experimentSelection = new SelectionModel<Experiment>(true, []);
+  metricSelection = new SelectionModel<Experiment>(true, []);
 
   /** Whether the number of selected elements matches the total number of rows. */
   isAllModelSelected() {
@@ -82,6 +89,11 @@ export class AppComponent {
   isAllExperimentSelected() {
     const numSelected = this.experimentSelection.selected.length;
     const numRows = this.experimentDataSource.data.length;
+    return numSelected === numRows;
+  }
+  isAllMetricSelected() {
+    const numSelected = this.metricSelection.selected.length;
+    const numRows = this.metricDataSource.data.length;
     return numSelected === numRows;
   }
 
@@ -96,6 +108,11 @@ export class AppComponent {
       this.experimentSelection.clear() :
       this.experimentDataSource.data.forEach(row => this.experimentSelection.select(row));
   }
+  masterToggleMetric() {
+    this.isAllMetricSelected() ?
+      this.metricSelection.clear() :
+      this.metricDataSource.data.forEach(row => this.metricSelection.select(row));
+  }
 
   applyFilterModel(filterValue: string) {
     this.modelDataSource.filter = filterValue.trim().toLowerCase();
@@ -103,23 +120,54 @@ export class AppComponent {
   applyFilterExperiment(filterValue: string) {
     this.experimentDataSource.filter = filterValue.trim().toLowerCase();
   }
+  applyFilterMetric(filterValue: string) {
+    this.metricDataSource.filter = filterValue.trim().toLowerCase();
+  }
 
   openExperimentDetails(evt: any) {
-    console.log(evt);
+    const exp = this.experimentDataSource.data.filter((e) => e._id === evt)[0];
+    Object.keys(exp.config).forEach((c) => exp.config[c] === null ? exp.config[c] = 'N/D' : exp.config[c] = exp.config[c]);
     this.dialog.open(ExpdetailsComponent, {
-      data: EXPERIMENTS.filter((e) => e.id === evt)[0]
+      data: exp
     });
   }
 
   getExperiments() {
-    console.log(this.modelSelection.selected);
+    this.experimentDataSource = new MatTableDataSource<Experiment>();
+    this.experimentDataSource.paginator = this.experimentPaginator;
+    this.modelSelection.selected.forEach((m) => {
+      this.apiService.getRuns(m.model_tag).subscribe((response) => {
+        this.runs = response['data'].forEach((run) => {
+          this.experimentDataSource.data.push(run);
+        });
+        this.experimentDataSource.data = [...this.experimentDataSource.data];
+      });
+    });
   }
 
   plotExperiments() {
-    console.log(this.experimentSelection.selected);
+    this.metricDataSource = new MatTableDataSource();
+    this.metricDataSource.paginator = this.metricPaginator;
+    this.experimentSelection.selected.forEach((run) => this.apiService.getMetricNames(run._id).subscribe((response) => {
+      this.metricDataSource.data = [...response['data']];
+      console.log(this.metricDataSource.data);
+    }));
   }
+
+  getMetrics() {
+    this.experimentSelection.selected.forEach((run) => {
+      this.metricSelection.selected.forEach((metric) => {
+        this.apiService.getMetricScalars(run._id, metric).subscribe((response) => {
+          console.log(response);
+          console.log(response['data']);
+        });
+      });
+    });
+    console.log(this.metricSelection.selected);
+  }
+
   constructor(changeDetectorRef: ChangeDetectorRef, media: MediaMatcher,
-    private dialog: MatDialog, private httpClient: HttpClient) {
+    private dialog: MatDialog, private apiService: ApiServiceService) {
     this.mobileQuery = media.matchMedia('(max-width: 600px)');
     this._mobileQueryListener = () => changeDetectorRef.detectChanges();
     this.mobileQuery.addListener(this._mobileQueryListener);
@@ -135,9 +183,6 @@ export class AppComponent {
 
   // tslint:disable-next-line:use-life-cycle-interface
   ngOnInit(): void {
-    this.experimentDataSource.paginator = this.experimentPaginator;
-    this.modelDataSource.paginator = this.modelPaginator;
-
     this.linePlot.setXLabel('Time');
     this.linePlot.setYLabel('Smoked Pots');
     this.linePlot.setNgxData(this.linePlotData);
@@ -199,7 +244,17 @@ export class AppComponent {
       ]
     };
     this.parallelPlot.setOption(option);
+
+    this.apiService.getModels().subscribe((response) => {
+      this.modelDataSource = new MatTableDataSource<Model>();
+      this.modelDataSource.paginator = this.modelPaginator;
+      response['data'].forEach((m) => {
+        this.modelDataSource.data.push({ model_tag: m, nexp: 0 });
+      });
+      this.modelDataSource.data = [...this.modelDataSource.data];
+    });
   }
+
   // tslint:disable-next-line:use-life-cycle-interface
   ngOnDestroy(): void {
     this.mobileQuery.removeListener(this._mobileQueryListener);
