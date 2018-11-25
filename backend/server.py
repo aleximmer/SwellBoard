@@ -143,9 +143,14 @@ def get_metric_scalars():
 
     run_id = int(args['run_id'])
     metric_name = args['metric_name']
+    result = dict()
     run_metric = db['Swell']['metrics'].find_one({'run_id': run_id, 'name': metric_name})
-    run_metric = {k: v for k, v in run_metric.items() if k != '_id'}
-    return encode_response(json_response(run_metric), cookie)
+    run = db['Swell']['runs'].find_one({'_id': run_id}, {'config'})['config']['method_tag']
+    run_model_name = run + '-' + str(run_id)
+    result['name'] = run_model_name
+    result['series'] = [{'name': step, 'value': val, 'run_id': run_id}
+                        for step, val in zip(run_metric['steps'], run_metric['values'])]
+    return encode_response(json_response(result), cookie)
 
 @application.route('/results/names', methods=['GET'])
 @cross_origin()
