@@ -207,15 +207,17 @@ export class AppComponent {
     const metrics = this.metricSelection.selected;
     const experiments = this.experimentSelection.selected.map((e) => e._id);
 
-    params.forEach((p) => {
-      option.parallelAxis.push({ dim: params.indexOf(p), name: p });
+    metrics.forEach((p) => {
+      option.parallelAxis.push({ dim: metrics.indexOf(p), name: p });
       option.parallelAxis = [...option.parallelAxis];
     });
 
-    metrics.forEach((p) => {
-      option.parallelAxis.push({ dim: metrics.indexOf(p) + params.length, name: p });
+    params.forEach((p) => {
+      option.parallelAxis.push({ dim: params.indexOf(p) + metrics.length, name: p });
       option.parallelAxis = [...option.parallelAxis];
     });
+
+    option.parallelAxis = [...this.sortByKey(option.parallelAxis, 'name')];
 
     this.parallelPlot.setOption(option);
 
@@ -323,7 +325,7 @@ export class AppComponent {
   sortByKey(array, key) {
     return array.sort(function (a, b) {
       const x = a[key]; const y = b[key];
-      return ((x < y) ? 1 : ((x > y) ? -1 : 0));
+      return ((x < y) ? -1 : ((x > y) ? 1 : 0));
     });
   }
 }
