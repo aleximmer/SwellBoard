@@ -208,22 +208,14 @@ export class AppComponent {
     const experiments = this.experimentSelection.selected.map((e) => e._id);
 
     params.forEach((p) => {
-      console.log(p);
-      console.log(params);
       option.parallelAxis.push({ dim: params.indexOf(p), name: p });
       option.parallelAxis = [...option.parallelAxis];
-      option.series.push(0);
-      option.series = [...option.series];
     });
 
     metrics.forEach((p) => {
       option.parallelAxis.push({ dim: metrics.indexOf(p) + params.length, name: p });
       option.parallelAxis = [...option.parallelAxis];
-      option.series.push(0);
-      option.series = [...option.series];
     });
-
-    console.log(option.parallelAxis);
 
     this.parallelPlot.setOption(option);
 
@@ -235,10 +227,10 @@ export class AppComponent {
         data: []
       };
 
-      console.log(run);
-
       const data_dict = {};
       data_dict[e._id] = {};
+
+      const head = ([x, ...xs]) => x;
 
       this.paramsSelection.selected.forEach((p) => {
         this.apiService.getParameterScalars(e._id, p).subscribe((response) => {
@@ -249,14 +241,14 @@ export class AppComponent {
           for (let i = 0; i < keys.length; i++) {
             sorted[sorted.length] = data_dict[e._id][keys[i]];
           }
-          run['data'][params.indexOf(p)] = sorted;
-          run['data'][params.indexOf(p)] = [...run['data'][params.indexOf(p)]];
-
-          if ((run['data'].length === (params.length + metrics.length))) {
-            console.log('run');
-            console.log(run);
+          run['data'] = sorted;
+          run['data'] = [...run['data']];
+          if (run['data'].length === (params.length + metrics.length)) {
+            run['data'][0] = [run['data'][0]];
+            run['data'] = [head((<any>run['data']))];
             option.series[experiments.indexOf(e._id)] = run;
-            option.series = [...(<any>option.series[params.length + metrics.length]).flat()];
+            option.series = [...option.series];
+            console.log(option.series);
             this.parallelPlot.setOption(option);
           }
         });
@@ -270,14 +262,14 @@ export class AppComponent {
           for (let i = 0; i < keys.length; i++) {
             sorted[sorted.length] = data_dict[e._id][keys[i]];
           }
-          run['data'][metrics.indexOf(m) + params.length] = sorted;
-          run['data'][metrics.indexOf(m) + params.length] = [...run['data'][metrics.indexOf(m)]];
-
-          if ((run['data'].length === (params.length + metrics.length))) {
-            console.log('run');
-            console.log(run);
+          run['data'] = sorted;
+          run['data'] = [...run['data']];
+          if (run['data'].length === (params.length + metrics.length)) {
+            run['data'][0] = run['data'].map((v) => v);
+            run['data'] = [head((<any>run['data']))];
             option.series[experiments.indexOf(e._id)] = run;
-            option.series = [...(<any>option.series).flat()];
+            option.series = [...option.series];
+            console.log(option.series);
             this.parallelPlot.setOption(option);
           }
         });
