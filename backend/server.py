@@ -3,6 +3,7 @@ from flask import jsonify
 from pymongo import MongoClient
 from auxiliary.nocache import nocache
 from auxiliary.cookie import Cookie
+from flask_cors import CORS, cross_origin
 from auxiliary.supervisor import Supervisor
 from auxiliary.mongoconfig import MongoConfig
 from flask import Flask, request, send_from_directory, make_response, redirect
@@ -19,6 +20,7 @@ SUPERVISOR = Supervisor()
 # Initailize application
 application = Flask(__name__)
 application.config.from_object(__name__)
+cors = CORS(application)
 
 # Configure Database
 mongo_url = "mongodb://{}:{}@{}/{}".format(
@@ -86,6 +88,7 @@ def login():
     return "Re-authentication not allowed\n", 403
 
 @application.route('/models', methods=['GET'])
+@cross_origin()
 def get_models():
     '''
     This method takes care of querying all
@@ -107,6 +110,7 @@ def get_models():
     return encode_response(json_response(models), cookie)
 
 @application.route('/runs', methods=['GET'])
+@cross_origin()
 def get_runs():
     cookie, args = decode_request(request)
     if valid_request(request.path, cookie, args) == False:
@@ -118,6 +122,7 @@ def get_runs():
     return encode_response(json_response(runs), cookie)
 
 @application.route('/metrics/names', methods=['GET'])
+@cross_origin()
 def get_metric_names():
     cookie, args = decode_request(request)
     if valid_request(request.path, cookie, args) == False:
@@ -129,6 +134,7 @@ def get_metric_names():
     return encode_response(json_response(metric_names), cookie)
 
 @application.route('/metrics/scalars', methods=['GET'])
+@cross_origin()
 def get_metric_scalars():
     cookie, args = decode_request(request)
     if valid_request(request.path, cookie, args) == False:
@@ -140,6 +146,7 @@ def get_metric_scalars():
     return encode_response(json_response(run_metric), cookie)
 
 @application.route('/results/names', methods=['GET'])
+@cross_origin()
 def get_result_names():
     cookie, args = decode_request(request)
     if valid_request(request.path, cookie, args) == False:
@@ -151,6 +158,7 @@ def get_result_names():
     return encode_response(json_response(result_names), cookie)
 
 @application.route('/results/scalars', methods=['GET'])
+@cross_origin()
 def get_result_scalars():
     cookie, args = decode_request(request)
     if valid_request(request.path, cookie, args) == False:
@@ -162,6 +170,7 @@ def get_result_scalars():
     return encode_response(json_response(result_scalars), cookie)
 
 @application.route('/params/names', methods=['GET'])
+@cross_origin()
 def get_param_names():
     cookie, args = decode_request(request)
     if valid_request(request.path, cookie, args) == False:
@@ -173,6 +182,7 @@ def get_param_names():
     return encode_response(json_response(param_names), cookie)
 
 @application.route('/params/scalars', methods=['GET'])
+@cross_origin()
 def get_param_scalars():
     cookie, args = decode_request(request)
     if valid_request(request.path, cookie, args) == False:
@@ -184,6 +194,7 @@ def get_param_scalars():
     return encode_response(json_response(param_scalars), cookie)
 
 @application.route('/artifacts', methods=['GET'])
+@cross_origin()
 def get_artifacts():
     cookie, args = decode_request(request)
     if valid_request(request.path, cookie, args) == False:
