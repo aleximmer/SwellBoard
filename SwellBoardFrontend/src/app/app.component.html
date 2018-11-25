@@ -1,4 +1,4 @@
-<div class="swell-container" [class.swell-is-mobile]="mobileQuery.matches">
+<div class="swell-container" [class.swell-is-mobile]="mobileQuery.matches" (window:resize)="onResize($event)">
     <mat-toolbar color="primary" class="swell-toolbar">
         <img src="/assets/logo.png" alt="SwellBoardLogo" width="50">
         <h1 class="swell-app-name">{{title}}</h1>
@@ -12,7 +12,7 @@
         <button class="pull-right" (click)="snavmetrics.toggle()" mat-raised-button>Models</button>
     </mat-toolbar>
     <mat-sidenav-container class="swell-sidenav-container" [style.marginTop.px]="mobileQuery.matches ? 56 : 0">
-        <mat-sidenav style="border-right: 1px solid black;" #snavmodel [mode]="push" [fixedInViewport]="mobileQuery.matches" fixedTopGap="56" opened="true">
+        <mat-sidenav style="padding-bottom: 2rem; border-right: 1px solid black;" [mode]="push" #snavmodel [fixedInViewport]="mobileQuery.matches" fixedTopGap="56" opened="true">
             <div class="swell-sidenav-content">
                 <h3 class="swell-sidenav-content-title">Models</h3>
                 <mat-divider></mat-divider>
@@ -95,9 +95,9 @@
                 </div>
             </div>
         </mat-sidenav>
-        <mat-sidenav style="border-left: 1px solid black;" #snavmetrics position="end" [mode]="push" [fixedInViewport]="mobileQuery.matches" fixedTopGap="56" opened="true">
+        <mat-sidenav style="padding-bottom: 2rem; border-left: 1px solid black;" #snavmetrics position="end" [mode]="push" [fixedInViewport]="mobileQuery.matches" fixedTopGap="56" opened="true">
             <div class="swell-sidenav-content">
-                <h3 class="swell-sidenav-content-title">Metrics</h3>
+                <h3 class="swell-sidenav-content-title">Metrics Plot</h3>
                 <mat-divider></mat-divider>
                 <div class="swell-table-div">
                     <mat-form-field>
@@ -127,13 +127,14 @@
                         </tr>
                     </table>
                     <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons #modelPaginator></mat-paginator>
-                    <button (click)="getExperiments()" color="primary" mat-raised-button class="pull-right">Get Experiments</button>
+                    <button (click)="getExperiments()" color="primary" mat-raised-button class="pull-right">Plot Metrics</button>
                 </div>
             </div>
             <div class="swell-sidenav-content">
-                <h3 class="swell-sidenav-content-title">Correlations</h3>
+                <h3 class="swell-sidenav-content-title">Comparison Plot</h3>
                 <mat-divider></mat-divider>
                 <div class="swell-table-div">
+                    <h5 class="swell-sidenav-content-title">Parameters</h5>
                     <mat-form-field>
                         <input matInput (keyup)="applyFilterModel($event.target.value)" placeholder="Filter Models">
                     </mat-form-field>
@@ -161,13 +162,10 @@
                         </tr>
                     </table>
                     <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons #modelPaginator></mat-paginator>
-                    <button (click)="getExperiments()" color="primary" mat-raised-button class="pull-right">Get Experiments</button>
                 </div>
-            </div>
-            <div class="swell-sidenav-content">
-                <h3 class="swell-sidenav-content-title">Final Metrics</h3>
                 <mat-divider></mat-divider>
                 <div class="swell-table-div">
+                    <h5 class="swell-sidenav-content-title">Metrics</h5>
                     <mat-form-field>
                         <input matInput (keyup)="applyFilterModel($event.target.value)" placeholder="Filter Models">
                     </mat-form-field>
@@ -195,13 +193,19 @@
                         </tr>
                     </table>
                     <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons #modelPaginator></mat-paginator>
-                    <button (click)="getExperiments()" color="primary" mat-raised-button class="pull-right">Get Experiments</button>
+                    <button (click)="getExperiments()" color="primary" mat-raised-button class="pull-right">Plot Final Metrics</button>
                 </div>
             </div>
         </mat-sidenav>
-        <mat-sidenav-content>
+        <mat-sidenav-content hasBackdrop="false">
             <div style="margin-left: 350px; margin-right: 350px">
                 <app-lineplot #linePlot></app-lineplot>
+                <mat-card style="margin: 2rem;">
+                    <div style="background-color: #333;">
+                        <h3 style="margin: 0px !important; padding-left: 2rem; padding-top: 1rem;">Metrics Plot</h3>
+                        <div id="metrics_line" style="height:400px;"></div>
+                    </div>
+                </mat-card>
             </div>
         </mat-sidenav-content>
     </mat-sidenav-container>

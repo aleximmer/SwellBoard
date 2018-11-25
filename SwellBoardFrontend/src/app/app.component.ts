@@ -5,6 +5,7 @@ import { SelectionModel } from '@angular/cdk/collections';
 import { ExpdetailsComponent } from './expdetails/expdetails.component';
 import { HttpClient } from '@angular/common/http';
 import { LineplotComponent } from './lineplot/lineplot.component';
+import { rgb } from 'd3';
 
 export interface Model {
   model_tag: string;
@@ -49,8 +50,12 @@ const EXPERIMENTS: Experiment[] = [
 export class AppComponent {
   title = 'Swellboard';
 
+  echarts = require('echarts');
+
   @ViewChild('linePlot') linePlot: LineplotComponent;
   linePlotData = [];
+
+  parallelPlot;
 
   mobileQuery: MediaQueryList;
 
@@ -136,10 +141,72 @@ export class AppComponent {
     this.linePlot.setXLabel('Time');
     this.linePlot.setYLabel('Smoked Pots');
     this.linePlot.setNgxData(this.linePlotData);
+
+    // initialize echarts instance with prepared DOM
+    this.parallelPlot = this.echarts.init(document.getElementById('metrics_line'), 'dark');
+    // draw chart
+    const option = {
+      parallelAxis: [                     // Definitions of axes.
+        { dim: 0, name: 'Accuracy' }, // Each axis has a 'dim' attribute, representing dimension index in data.
+        { dim: 1, name: 'Recall' },
+        { dim: 2, name: 'ROG' },
+      ],
+      parallel: {                         // Definition of a parallel coordinate system.
+        left: '10%',                     // Location of parallel coordinate system.
+        right: '13%',
+        bottom: '10%',
+        top: '15%',
+        parallelAxisDefault: {          // A pattern for axis definition, which can avoid repeating in `parallelAxis`.
+          type: 'value',
+          nameLocation: 'end',
+          nameGap: 20,
+        }
+      },
+      legend: {
+        bottom: 0,
+        data: ['Model 1: CNN', 'Model 2: CNN', 'Model 3: LSTM'],
+        itemGap: 20,
+        textStyle: {
+          color: '#fff',
+          fontSize: 14
+        }
+      },
+      series: [                           // Here the three series sharing the same parallel coordinate system.
+        {
+          name: 'Model 1: CNN',
+          type: 'parallel',           // The type of this series is 'parallel'
+          data: [
+            [1, 55, 9],
+            [2, 25, 11],
+          ]
+        },
+        {
+          name: 'Model 2: CNN',
+          type: 'parallel',
+          data: [
+            [3, 56, 7],
+            [4, 33, 7],
+          ]
+        },
+        {
+          name: 'Model 3: LSTM',
+          type: 'parallel',
+          data: [
+            [4, 33, 7],
+            [5, 42, 24],
+          ]
+        }
+      ]
+    };
+    this.parallelPlot.setOption(option);
   }
   // tslint:disable-next-line:use-life-cycle-interface
   ngOnDestroy(): void {
     this.mobileQuery.removeListener(this._mobileQueryListener);
+  }
+
+  onResize() {
+    this.parallelPlot.resize();
   }
 
 }
