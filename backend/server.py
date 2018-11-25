@@ -208,7 +208,7 @@ def get_artifacts():
     for file in db['Swell']['runs'].find_one({'_id': int(args['run_id'])}, {'artifacts'})['artifacts']:
         if '.png' in file['name']:
             fig = fs.get(file['file_id']).read()
-            artifacts[file['name']] = fig
+            artifacts[file['name']] = str(fig)
 
     return encode_response(json_response(artifacts), cookie)
 
