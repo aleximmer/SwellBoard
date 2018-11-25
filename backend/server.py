@@ -142,7 +142,7 @@ def get_metric_scalars():
         return "Invalid request\n", 400
 
     run_metric = db['Swell']['metrics'].find_one({'run_id': args['run_id']}, {'name': args['metric_name']})
-    run_metric['name'] = db['Swell']['runs'].find_one({'_id': args['run_id']}, {'config': 1})['config']['methd_tag'] + '-{}'.format(run_id)
+    run_metric['name'] = db['Swell']['runs'].find_one({'_id': args['run_id']}, {'config': 1})['config']['methd_tag'] + '-{}'.format(args['run_id'])
 
     return encode_response(json_response(run_metric), cookie)
 
