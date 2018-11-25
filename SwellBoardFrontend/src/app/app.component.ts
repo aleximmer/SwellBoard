@@ -189,6 +189,14 @@ export class AppComponent {
     this.isVisible = true;
     const option = {
       parallelAxis: [],
+      legend: {
+        data: [],
+        itemGap: 20,
+        textStyle: {
+          color: '#fff',
+          fontSize: 14
+        }
+      },
       parallel: {                         // Definition of a parallel coordinate system.
         left: '10%',                     // Location of parallel coordinate system.
         right: '13%',
@@ -206,7 +214,10 @@ export class AppComponent {
     const params = this.paramsSelection.selected;
     const metrics = this.metricSelection.selected;
     const experiments = this.experimentSelection.selected.map((e) => e._id);
+    const strexperiments = this.experimentSelection.selected.map((e) => e._id.toString());
+    option.legend.data = [...strexperiments];
 
+    console.log(option.legend);
     metrics.forEach((p) => {
       option.parallelAxis.push({ dim: metrics.indexOf(p), name: p });
       option.parallelAxis = [...option.parallelAxis];
