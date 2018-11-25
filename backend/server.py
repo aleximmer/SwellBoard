@@ -1,4 +1,5 @@
 import json
+import base64
 from flask import jsonify
 from pymongo import MongoClient
 import gridfs
@@ -35,7 +36,7 @@ db = MongoClient(mongo_url)
 
 def decode_request(request):
     '''
-    This method decodes a flask.request
+    This function decodes a flask.request
     object and returns a session cookie
     as an auziliary.Cookie object and a
     dictionary containing all the 
@@ -49,7 +50,7 @@ def decode_request(request):
 
 def encode_response(response, session_cookie):
     '''
-    This methods encodes an auxiliary.Cookie
+    This function encodes an auxiliary.Cookie
     object and injects it into the reposnse's
     body.
     '''
@@ -58,7 +59,7 @@ def encode_response(response, session_cookie):
 
 def valid_request(path, cookie, args):
     '''
-    This method makes use of the Supervisor
+    This function makes use of the Supervisor
     class to verify the integrity and 
     validity of a request.
     '''
@@ -70,7 +71,7 @@ def valid_request(path, cookie, args):
 @nocache
 def login():
     '''
-    This method takes care of registering a
+    This function takes care of registering a
     user and returning a valid cookie.
 
     Parameters:
@@ -92,7 +93,7 @@ def login():
 @cross_origin()
 def get_models():
     '''
-    This method takes care of querying all
+    This function takes care of querying all
     the models from a user.
 
     Parameters:
@@ -113,6 +114,17 @@ def get_models():
 @application.route('/runs', methods=['GET'])
 @cross_origin()
 def get_runs():
+    '''
+    This function gets all the runs associated
+    with a specific model.
+
+    Parameters:
+        model_name <name of the module>
+
+    Return:
+        JSON encoded dictionary with run
+        information.
+    '''
     cookie, args = decode_request(request)
     if valid_request(request.path, cookie, args) == False:
         return "Invalid request\n", 400
@@ -125,6 +137,16 @@ def get_runs():
 @application.route('/metrics/names', methods=['GET'])
 @cross_origin()
 def get_metric_names():
+    '''
+    This function gets all the metric
+    names associated with a single run.
+
+    Parameters:
+        run_id <ID of the run>
+
+    Return:
+        JSON encoded list of strings.
+    '''
     cookie, args = decode_request(request)
     if valid_request(request.path, cookie, args) == False:
         return "Invalid request\n", 400
@@ -137,6 +159,19 @@ def get_metric_names():
 @application.route('/metrics/scalars', methods=['GET'])
 @cross_origin()
 def get_metric_scalars():
+    '''
+    This function gets all the metrics'
+    values associated with a single run, 
+    specific to a single metric.
+
+    Parameters:
+        run_id <ID of the run>
+        metric_name <Name of the metricto track>
+
+    Return:
+        JSON encoded over time information
+        for the requested metric.
+    '''
     cookie, args = decode_request(request)
     if valid_request(request.path, cookie, args) == False:
         return "Invalid request\n", 400
@@ -155,6 +190,17 @@ def get_metric_scalars():
 @application.route('/results/names', methods=['GET'])
 @cross_origin()
 def get_result_names():
+    '''
+    This function gets all the results'
+    names associated with a single run.
+
+    Parameters:
+        run_id <ID of the run>
+
+    Return:
+        JSON encoded list of all result
+        names.
+    '''
     cookie, args = decode_request(request)
     if valid_request(request.path, cookie, args) == False:
         return "Invalid request\n", 400
@@ -167,6 +213,19 @@ def get_result_names():
 @application.route('/results/scalars', methods=['GET'])
 @cross_origin()
 def get_result_scalars():
+    '''
+    This function gets all the results'
+    values associated with a single run,
+    specific to a single metric.
+
+    Parameter:
+        run_id <ID of the run>
+        result_name <Name of the result>
+
+    Return:
+        JSON ecoded over time information
+        for the requested result.
+    '''
     cookie, args = decode_request(request)
     if valid_request(request.path, cookie, args) == False:
         return "Invalid request\n", 400
@@ -181,6 +240,17 @@ def get_result_scalars():
 @application.route('/params/names', methods=['GET'])
 @cross_origin()
 def get_param_names():
+    '''
+    This function gets all the params'
+    names associated witha a single run.
+
+    Parameters:
+        run_id <ID of the run>
+
+    Return:
+        JSON encoded list of all param
+        names.
+    '''
     cookie, args = decode_request(request)
     if valid_request(request.path, cookie, args) == False:
         return "Invalid request\n", 400
@@ -192,6 +262,19 @@ def get_param_names():
 @application.route('/params/scalars', methods=['GET'])
 @cross_origin()
 def get_param_scalars():
+    '''
+    This function gets all the params'
+    values associated with a single run,
+    specific to a single param.
+
+    Parameters:
+        run_id <ID of the run>
+        param_name <Name of the parameter>
+
+    Return:
+        JSON encoded over time information
+        for the requested param.
+    '''
     cookie, args = decode_request(request)
     if valid_request(request.path, cookie, args) == False:
         return "Invalid request\n", 400
@@ -204,6 +287,17 @@ def get_param_scalars():
 @application.route('/artifacts', methods=['GET'])
 @cross_origin()
 def get_artifacts():
+    '''
+    This function gets all the artifacts for
+    a specific run.
+
+    Parameters:
+        run_id <ID of the run>
+
+    Returns:
+        JSON encoded dictionary of
+        binary data.
+    '''
     cookie, args = decode_request(request)
     if valid_request(request.path, cookie, args) == False:
         return "Invalid request\n", 400
@@ -213,11 +307,15 @@ def get_artifacts():
     for file in db['Swell']['runs'].find_one({'_id': int(args['run_id'])}, {'artifacts'})['artifacts']:
         if '.png' in file['name']:
             fig = fs.get(file['file_id']).read()
-            artifacts[file['name']] = str(fig)
+            artifacts[file['name']] = str(base64.b64encode(fig))
 
     return encode_response(json_response(artifacts), cookie)
 
 def json_response(dictionary):
+    '''
+    This function encodes cetain data types
+    into JSON formatted strings.
+    '''
     data = dictionary
     if type(data) is list:
         data = {'data': data}
