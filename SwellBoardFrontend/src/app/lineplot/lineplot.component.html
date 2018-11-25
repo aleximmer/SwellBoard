@@ -1,5 +1,5 @@
-<mat-card style="height: 100%; margin: 2rem;">
-    <div *ngFor="let data of ngxData">
+<mat-card style="height: 100%; margin: 2rem; z-index: 2 !important;">
+    <div *ngFor="let data of ngxData" style="background-color: #333; padding: 2rem">
         <div class="row" *ngIf="(data.data[0].series.length > 0)">
             <div class="col-lg-2 col-sm-12" style="padding: 2rem !important;">
                 <h3>Metric: Recall <small>Model: CNN</small></h3>
@@ -10,8 +10,8 @@
                 </div>
             </div>
             <div class="col-lg-10 col-sm-12 ng-div">
-                <ngx-charts-line-chart [roundDomains]="false" [timeline]="false" [results]="data.data" [xAxis]="showXAxis" [yAxis]="showYAxis" [legend]="true" [showXAxisLabel]="showXAxisLabel" [showYAxisLabel]="showYAxisLabel" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel"
-                    [autoScale]="autoScale" disableTooltip="false" (select)="onPointSelected($event)" (activate)="onPointActivated($event)">
+                <ngx-charts-line-chart [xScaleMax]="xScaleMax" [xScaleMin]="xScaleMin" [yScaleMax]="yScaleMax" [yScaleMin]="yScaleMin" [roundDomains]="false" [timeline]="false" [results]="data.data" [xAxis]="showXAxis" [yAxis]="showYAxis" [legend]="true" [showXAxisLabel]="showXAxisLabel"
+                    [showYAxisLabel]="showYAxisLabel" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel" [autoScale]="autoScale" disableTooltip="false" (select)="onPointSelected($event)" (activate)="onPointActivated($event)">
                 </ngx-charts-line-chart>
             </div>
         </div>

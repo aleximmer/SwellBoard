@@ -16,6 +16,10 @@ export class LineplotComponent implements OnInit {
   xAxisLabel;
   showYAxisLabel = true;
   yAxisLabel;
+  xScaleMax = 3.1;
+  xScaleMin = 0.0;
+  yScaleMax = 21;
+  yScaleMin = 0.0;
 
   // line, area
   autoScale = true;
