@@ -204,13 +204,13 @@ def get_artifacts():
         return "Invalid request\n", 400
 
     fs = gridfs.GridFS(db['Swell'])
-    artifacts = []
+    artifacts = {}
     for file in db['Swell']['runs'].find_one({'_id': int(args['run_id'])}, {'artifacts'})['artifacts']:
         if '.png' in file['name']:
             fig = fs.get(file['file_id']).read()
-    artifacts.append(fig)
+            artifacts[file['file_id']] = fig
 
-    return encode_response(not_implemented(), cookie)
+    return encode_response(json_response(artifacts), cookie)
 
 def json_response(dictionary):
     data = dictionary
