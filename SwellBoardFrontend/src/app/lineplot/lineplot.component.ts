@@ -7,6 +7,7 @@ import { Component, OnInit } from '@angular/core';
 })
 export class LineplotComponent implements OnInit {
 
+  title;
   // ngxChart options
   showXAxis = true;
   showYAxis = true;
@@ -16,15 +17,15 @@ export class LineplotComponent implements OnInit {
   xAxisLabel;
   showYAxisLabel = true;
   yAxisLabel;
-  xScaleMax = 3.1;
-  xScaleMin = 0.0;
-  yScaleMax = 21;
-  yScaleMin = 0.0;
 
   // line, area
   autoScale = true;
-
+  ref;
   ngxData = [];
+
+  setTitle(title) {
+    this.title = title;
+  }
 
   setXLabel(xAxisLabel) {
     this.xAxisLabel = xAxisLabel;
@@ -33,8 +34,20 @@ export class LineplotComponent implements OnInit {
     this.yAxisLabel = yAxisLabel;
   }
 
+  setRef(ref) {
+    this.ref = ref;
+  }
+
+  getRef() {
+    return this.ref;
+  }
+
   setNgxData(ngxData) {
-    this.ngxData = ngxData;
+    this.ngxData = [...ngxData];
+  }
+
+  getNgxData() {
+    return this.ngxData;
   }
 
   constructor() { }

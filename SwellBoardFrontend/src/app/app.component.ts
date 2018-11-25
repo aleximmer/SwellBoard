@@ -1,4 +1,8 @@
-import { Component, ChangeDetectorRef, ViewChild } from '@angular/core';
+import {
+  Component, ChangeDetectorRef, ViewChild,
+  ComponentFactoryResolver, ApplicationRef,
+  Injector, ViewContainerRef
+} from '@angular/core';
 import { MediaMatcher } from '@angular/cdk/layout';
 import { MatTableDataSource, MatDialog, MatPaginator } from '@angular/material';
 import { SelectionModel } from '@angular/cdk/collections';
@@ -22,27 +26,6 @@ export interface Experiment {
   model_tag: string;
 }
 
-const MODEL: Model[] = [
-  { model_tag: 'CNN', nexp: 0 },
-  { model_tag: 'LSTM', nexp: 0 },
-  { model_tag: 'GRU', nexp: 0 },
-  { model_tag: 'GRU2', nexp: 0 },
-  { model_tag: 'GCN', nexp: 0 },
-  { model_tag: 'VAE', nexp: 0 },
-];
-
-const EXPERIMENTS: Experiment[] = [
-  {
-    _id: 1, model_tag: 'CNN', date: 'Today', config: { yo: 'value_1', ya: 'value_2' },
-    artifacts: { art1: 'artifact1.png', art2: 'artifact2.png' }, comment: 'Deutschland über alles.'
-  },
-  { _id: 2, model_tag: 'CNN', date: 'Yesterday', config: {}, artifacts: {}, comment: 'Deutschland über alles.' },
-  { _id: 3, model_tag: 'CNN', date: 'Wednesday', config: {}, artifacts: {}, comment: 'Deutschland über alles.' },
-  { _id: 4, model_tag: 'CNN', date: 'Thursday', config: {}, artifacts: {}, comment: 'Deutschland über alles.' },
-  { _id: 4, model_tag: 'CNN', date: 'Thursday', config: {}, artifacts: {}, comment: 'Deutschland über alles.' },
-  { _id: 5, model_tag: 'CNN', date: 'Friday', config: {}, artifacts: {}, comment: 'Deutschland über alles.' },
-];
-
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -55,9 +38,10 @@ export class AppComponent {
 
   echarts = require('echarts');
 
-  @ViewChild('linePlot') linePlot: LineplotComponent;
-  linePlotData = [];
+  @ViewChild('swellcontainer', { read: ViewContainerRef }) _vcr;
 
+  linePlots = {};
+  isVisible = false;
   parallelPlot;
 
   mobileQuery: MediaQueryList;
@@ -67,18 +51,22 @@ export class AppComponent {
   @ViewChild('expPaginator') experimentPaginator: MatPaginator;
   @ViewChild('modelPaginator') modelPaginator: MatPaginator;
   @ViewChild('metricPaginator') metricPaginator: MatPaginator;
+  @ViewChild('paramsPaginator') paramsPaginator: MatPaginator;
 
   modelDisplayedColumns: string[] = ['select', 'Tag', 'nexp'];
   experimentDisplayedColumns: string[] = ['select', 'details', 'id', 'tag'];
   metricDisplayedColumns: string[] = ['select', 'metric'];
+  paramsDisplayedColumns: string[] = ['select', 'param'];
 
   modelDataSource;
   experimentDataSource; // = new MatTableDataSource<Experiment>(EXPERIMENTS);
   metricDataSource; // = new MatTableDataSource<Experiment>(EXPERIMENTS);
+  paramsDataSource; // = new MatTableDataSource<Experiment>(EXPERIMENTS);
 
   modelSelection = new SelectionModel<Model>(true, []);
   experimentSelection = new SelectionModel<Experiment>(true, []);
-  metricSelection = new SelectionModel<Experiment>(true, []);
+  metricSelection = new SelectionModel(true, []);
+  paramsSelection = new SelectionModel(true, []);
 
   /** Whether the number of selected elements matches the total number of rows. */
   isAllModelSelected() {
@@ -94,6 +82,11 @@ export class AppComponent {
   isAllMetricSelected() {
     const numSelected = this.metricSelection.selected.length;
     const numRows = this.metricDataSource.data.length;
+    return numSelected === numRows;
+  }
+  isAllParamsSelected() {
+    const numSelected = this.paramsSelection.selected.length;
+    const numRows = this.paramsDataSource.data.length;
     return numSelected === numRows;
   }
 
@@ -113,6 +106,11 @@ export class AppComponent {
       this.metricSelection.clear() :
       this.metricDataSource.data.forEach(row => this.metricSelection.select(row));
   }
+  masterToggleParams() {
+    this.isAllParamsSelected() ?
+      this.paramsSelection.clear() :
+      this.paramsDataSource.data.forEach(row => this.paramsSelection.select(row));
+  }
 
   applyFilterModel(filterValue: string) {
     this.modelDataSource.filter = filterValue.trim().toLowerCase();
@@ -122,6 +120,9 @@ export class AppComponent {
   }
   applyFilterMetric(filterValue: string) {
     this.metricDataSource.filter = filterValue.trim().toLowerCase();
+  }
+  applyFilterParams(filterValue: string) {
+    this.paramsDataSource.filter = filterValue.trim().toLowerCase();
   }
 
   openExperimentDetails(evt: any) {
@@ -150,52 +151,47 @@ export class AppComponent {
     this.metricDataSource.paginator = this.metricPaginator;
     this.experimentSelection.selected.forEach((run) => this.apiService.getMetricNames(run._id).subscribe((response) => {
       this.metricDataSource.data = [...response['data']];
-      console.log(this.metricDataSource.data);
+    }));
+
+    this.paramsDataSource = new MatTableDataSource();
+    this.paramsDataSource.paginator = this.paramsPaginator;
+    this.experimentSelection.selected.forEach((run) => this.apiService.getParameterNames(run._id).subscribe((response) => {
+      this.paramsDataSource.data = [...Object.keys(response['config'])];
     }));
   }
 
   getMetrics() {
-    this.experimentSelection.selected.forEach((run) => {
-      this.metricSelection.selected.forEach((metric) => {
+    this.metricDataSource.data.forEach((metric) => {
+      if ((this.linePlots[(<any>metric)]) && (this.linePlots[(<any>metric)].getRef())) {
+        this.linePlots[(<any>metric)].getRef().destroy();
+        this.linePlots[(<any>metric)].setRef(null);
+      }
+    });
+    this.metricSelection.selected.forEach((metric) => {
+      const componentRef = this.addComp();
+      this.linePlots[(<any>metric)] = componentRef.instance;
+      this.linePlots[(<any>metric)].setRef(componentRef);
+      this.linePlots[(<any>metric)].setNgxData([]);
+      this.linePlots[(<any>metric)].setXLabel('Step');
+      this.linePlots[(<any>metric)].setYLabel(metric);
+      this.linePlots[(<any>metric)].setTitle(metric);
+      this.experimentSelection.selected.forEach((run) => {
         this.apiService.getMetricScalars(run._id, metric).subscribe((response) => {
-          console.log(response);
-          console.log(response['data']);
+          this.linePlots[(<any>metric)].getNgxData().push(response);
+          this.linePlots[(<any>metric)].setNgxData(this.linePlots[(<any>metric)].getNgxData());
         });
       });
     });
-    console.log(this.metricSelection.selected);
   }
 
-  constructor(changeDetectorRef: ChangeDetectorRef, media: MediaMatcher,
-    private dialog: MatDialog, private apiService: ApiServiceService) {
-    this.mobileQuery = media.matchMedia('(max-width: 600px)');
-    this._mobileQueryListener = () => changeDetectorRef.detectChanges();
-    this.mobileQuery.addListener(this._mobileQueryListener);
+  plotComparison() {
+    if (this.parallelPlot !== undefined) {
+      this.parallelPlot.dispose();
+    }
 
-    const name = 'CNN';
-    this.linePlotData.push({
-      // tslint:disable-next-line:max-line-length
-      data: [{ name: 'Model 1: ' + name, series: [{ name: 1, value: 20, id: 1 }, { name: 2, value: 15, id: 1 }, { name: 3, value: 10, id: 1 }] },
-      { name: 'Model 2: ' + name, series: [{ name: 1, value: 10, id: 2 }, { name: 2, value: 15, id: 2 }, { name: 3, value: 20, id: 2 }] },
-      { name: 'Model 3: ' + name, series: [{ name: 1, value: 5, id: 3 }, { name: 2, value: 5, id: 3 }, { name: 3, value: 5, id: 3 }] }],
-    });
-  }
-
-  // tslint:disable-next-line:use-life-cycle-interface
-  ngOnInit(): void {
-    this.linePlot.setXLabel('Time');
-    this.linePlot.setYLabel('Smoked Pots');
-    this.linePlot.setNgxData(this.linePlotData);
-
-    // initialize echarts instance with prepared DOM
-    this.parallelPlot = this.echarts.init(document.getElementById('metrics_line'), 'dark');
-    // draw chart
+    this.isVisible = true;
     const option = {
-      parallelAxis: [                     // Definitions of axes.
-        { dim: 0, name: 'Accuracy' }, // Each axis has a 'dim' attribute, representing dimension index in data.
-        { dim: 1, name: 'Recall' },
-        { dim: 2, name: 'ROG' },
-      ],
+      parallelAxis: [],
       parallel: {                         // Definition of a parallel coordinate system.
         left: '10%',                     // Location of parallel coordinate system.
         right: '13%',
@@ -207,44 +203,114 @@ export class AppComponent {
           nameGap: 20,
         }
       },
-      legend: {
-        bottom: 0,
-        data: ['Model 1: CNN', 'Model 2: CNN', 'Model 3: LSTM'],
-        itemGap: 20,
-        textStyle: {
-          color: '#fff',
-          fontSize: 14
-        }
-      },
-      series: [                           // Here the three series sharing the same parallel coordinate system.
-        {
-          name: 'Model 1: CNN',
-          type: 'parallel',           // The type of this series is 'parallel'
-          data: [
-            [1, 55, 9],
-            [2, 25, 11],
-          ]
-        },
-        {
-          name: 'Model 2: CNN',
-          type: 'parallel',
-          data: [
-            [3, 56, 7],
-            [4, 33, 7],
-          ]
-        },
-        {
-          name: 'Model 3: LSTM',
-          type: 'parallel',
-          data: [
-            [4, 33, 7],
-            [5, 42, 24],
-          ]
-        }
-      ]
+      series: []
     };
+
+    const params = this.paramsSelection.selected;
+    const metrics = this.metricSelection.selected;
+    const experiments = this.experimentSelection.selected.map((e) => e._id);
+
+    params.forEach((p) => {
+      console.log(p);
+      console.log(params);
+      option.parallelAxis.push({ dim: params.indexOf(p), name: p });
+      option.parallelAxis = [...option.parallelAxis];
+      option.series.push(0);
+      option.series = [...option.series];
+    });
+
+    metrics.forEach((p) => {
+      option.parallelAxis.push({ dim: metrics.indexOf(p) + params.length, name: p });
+      option.parallelAxis = [...option.parallelAxis];
+      option.series.push(0);
+      option.series = [...option.series];
+    });
+
+    console.log(option.parallelAxis);
+
     this.parallelPlot.setOption(option);
 
+    this.experimentSelection.selected.forEach((e) => {
+
+      const run = {
+        name: e._id,
+        type: 'parallel',           // The type of this series is 'parallel'
+        data: []
+      };
+
+      console.log(run);
+
+      const data_dict = {};
+      data_dict[e._id] = {};
+
+      this.paramsSelection.selected.forEach((p) => {
+        this.apiService.getParameterScalars(e._id, p).subscribe((response) => {
+          data_dict[e._id][p] = response['data'][0];
+          const keys = Object.keys(data_dict[e._id]);
+          keys.sort();
+          const sorted = [];
+          for (let i = 0; i < keys.length; i++) {
+            sorted[sorted.length] = data_dict[e._id][keys[i]];
+          }
+          run['data'][params.indexOf(p)] = sorted;
+          run['data'][params.indexOf(p)] = [...run['data'][params.indexOf(p)]];
+
+          if ((run['data'].length === (params.length + metrics.length))) {
+            console.log('run');
+            console.log(run);
+            option.series[experiments.indexOf(e._id)] = run;
+            option.series = [...(<any>option.series[params.length + metrics.length]).flat()];
+            this.parallelPlot.setOption(option);
+          }
+        });
+      });
+      this.metricSelection.selected.forEach((m) => {
+        this.apiService.getResultScalars(e._id, m).subscribe((response) => {
+          data_dict[e._id][m] = response['value'];
+          const keys = Object.keys(data_dict[e._id]);
+          keys.sort();
+          const sorted = [];
+          for (let i = 0; i < keys.length; i++) {
+            sorted[sorted.length] = data_dict[e._id][keys[i]];
+          }
+          run['data'][metrics.indexOf(m) + params.length] = sorted;
+          run['data'][metrics.indexOf(m) + params.length] = [...run['data'][metrics.indexOf(m)]];
+
+          if ((run['data'].length === (params.length + metrics.length))) {
+            console.log('run');
+            console.log(run);
+            option.series[experiments.indexOf(e._id)] = run;
+            option.series = [...(<any>option.series).flat()];
+            this.parallelPlot.setOption(option);
+          }
+        });
+      });
+    });
+  }
+  constructor(changeDetectorRef: ChangeDetectorRef, media: MediaMatcher,
+    private dialog: MatDialog, private apiService: ApiServiceService,
+    private factoryResolver: ComponentFactoryResolver, public viewContainerRef: ViewContainerRef) {
+    this.mobileQuery = media.matchMedia('(max-width: 600px)');
+    this._mobileQueryListener = () => changeDetectorRef.detectChanges();
+    this.mobileQuery.addListener(this._mobileQueryListener);
+
+    this.apiService.getArtifacts(2).subscribe((response) => {
+      const artifact_keys = Object.keys(response);
+    });
+  }
+
+  public addComp() {
+    // swell-main-container
+    const componentFactory = this.factoryResolver.resolveComponentFactory(LineplotComponent);
+    const componentRef = this._vcr.createComponent(componentFactory);
+    return componentRef;
+  }
+
+  // tslint:disable-next-line:use-life-cycle-interface
+  ngOnInit(): void {
+    this.parallelPlot = this.echarts.init(document.getElementById('metrics_line'), 'dark');
+
+    // initialize echarts instance with prepared DOM
     this.apiService.getModels().subscribe((response) => {
       this.modelDataSource = new MatTableDataSource<Model>();
       this.modelDataSource.paginator = this.modelPaginator;
@@ -264,4 +330,10 @@ export class AppComponent {
     this.parallelPlot.resize();
   }
 
+  sortByKey(array, key) {
+    return array.sort(function (a, b) {
+      const x = a[key]; const y = b[key];
+      return ((x < y) ? 1 : ((x > y) ? -1 : 0));
+    });
+  }
 }

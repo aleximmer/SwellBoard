@@ -55,7 +55,7 @@ import { NgxChartsModule } from '@swimlane/ngx-charts';
     MatTreeModule,
   ],
   providers: [],
-  entryComponents: [ExpdetailsComponent],
+  entryComponents: [ExpdetailsComponent, LineplotComponent],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

@@ -43,6 +43,10 @@ export class ApiServiceService {
     return this.httpClient.get(this.api_url + '/params/names?run_id=' + run_id);
   }
 
+  getArtifacts(run_id) {
+    return this.httpClient.get(this.api_url + '/artifacts?run_id=' + run_id);
+  }
+
   getParameterScalars(run_id, param_name) {
     return this.httpClient.get(this.api_url + '/params/scalars?run_id=' + run_id + '&param_name=' + param_name);
   }
