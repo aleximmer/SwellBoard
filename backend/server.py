@@ -11,7 +11,7 @@ from flask import Flask, request, send_from_directory, make_response, redirect
 
 # Server configuration
 SERVER_HOST = 'localhost'
-SERVER_PORT = 5001
+SERVER_PORT = 5010
 DB_CONFIG = MongoConfig().get_values()
 
 # Sessions-related variables
@@ -141,9 +141,10 @@ def get_metric_scalars():
     if valid_request(request.path, cookie, args) == False:
         return "Invalid request\n", 400
 
-    run_metric = db['Swell']['metrics'].find_one({'run_id': int(args['run_id'])}, {'name': args['metric_name']})
-    run_metric['name'] = db['Swell']['runs'].find_one({'_id': int(args['run_id'])}, {'config': 1})['config']['methd_tag'] + '-{}'.format(args['run_id'])
-
+    run_id = int(args['run_id'])
+    metric_name = args['metric_name']
+    run_metric = db['Swell']['metrics'].find_one({'run_id': run_id, 'name': metric_name})
+    run_metric = {k: v for k, v in run_metric.items() if k != '_id'}
     return encode_response(json_response(run_metric), cookie)
 
 @application.route('/results/names', methods=['GET'])
@@ -165,10 +166,12 @@ def get_result_scalars():
     if valid_request(request.path, cookie, args) == False:
         return "Invalid request\n", 400
 
-    result_scalars = db['Swell']['runs'].find_one({'_id': int(args['run_id'])}, {'result': 1})['result'][args['result_name']]
-    result_scalars = list(result_scalars)
-
-    return encode_response(json_response(result_scalars), cookie)
+    run_metric = dict()
+    run_metric['value'] = db['Swell']['runs'].find_one({'_id': int(args['run_id'])}, {'result': 1})['result'][
+        args['result_name']]
+    run_metric['name'] = db['Swell']['runs'].find_one({'_id': int(args['run_id'])}, {'config': 1})['config'][
+                             'method_tag'] + '-{}'.format(args['run_id'])
+    return encode_response(json_response(run_metric), cookie)
 
 @application.route('/params/names', methods=['GET'])
 @cross_origin()
@@ -178,7 +181,6 @@ def get_param_names():
         return "Invalid request\n", 400
 
     param_names = db['Swell']['runs'].find_one({'_id': int(args['run_id'])}, {'config': 1})
-    param_names = list(param_names)
 
     return encode_response(json_response(param_names), cookie)
 
@@ -189,8 +191,8 @@ def get_param_scalars():
     if valid_request(request.path, cookie, args) == False:
         return "Invalid request\n", 400
 
-    param_scalars = db['Swell']['runs'].find_one({'_id': int(args['run_id'])}, {'result': 1})['result'][args['param_name']]
-    param_scalars = list(param_scalars)
+    param_scalars = db['Swell']['runs'].find_one({'_id': int(args['run_id'])}, {'config': 1})['config'][args['param_name']]
+    param_scalars = [param_scalars]
 
     return encode_response(json_response(param_scalars), cookie)
 
