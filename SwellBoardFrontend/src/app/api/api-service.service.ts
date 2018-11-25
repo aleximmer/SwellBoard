@@ -15,6 +15,10 @@ export class ApiServiceService {
     return this.httpClient.get('https://jsonplaceholder.typicode.com/todos/1');
   }
 
+  def list_to_str(list) {
+    return undefined
+  }
+
   getModels() {
     return this.httpClient.get("${this.api_url}/models")
   }
@@ -45,5 +49,13 @@ export class ApiServiceService {
 
   getParameterScalars(run_id, param_name) {
     return this.httpClient.get("${this.api_url}/params/scalars?run_id=${run_id}&param_name=${param_name}")
+  }
+
+  getBayesianOptimization(run_ids, param_names, result_names) {
+    str_run_ids = list_to_str(run_ids)
+    str_param_names = list_to_str(param_names)
+    str_result_names = list_to_str(result_names)
+
+    return this.httpClient.get("${this.api_url}/params/names?run_ids=${str_run_ids}&param_names=${str_param_names}&result_names=${str_result_names}")
   }
 }
