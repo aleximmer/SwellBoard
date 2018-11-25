@@ -40,7 +40,7 @@ def decode_request(request):
     and GET methods).
     '''
     encoded_cookie = request.cookies.get('session_cookie', None)
-    session_cookie = Cookie().decode(encoded_cookie)
+    session_cookie = None#Cookie().decode(encoded_cookie)
     request_arguments = request.form if (request.method == 'POST') else request.args
     return session_cookie, request_arguments
 
@@ -50,7 +50,7 @@ def encode_response(response, session_cookie):
     object and injects it into the reposnse's
     body.
     '''
-    response.set_cookie(SESSION_COOKIE_LABEL, session_cookie.encode())
+    #response.set_cookie(SESSION_COOKIE_LABEL, session_cookie.encode())
     return response
 
 def valid_request(path, cookie, args):
@@ -60,7 +60,7 @@ def valid_request(path, cookie, args):
     validity of a request.
     '''
     arg_val = SUPERVISOR.validate_arguments(path, args)
-    cookie_val = SUPERVISOR.validate_cookie(cookie)
+    cookie_val = True#SUPERVISOR.validate_cookie(cookie)
     return (arg_val and cookie_val)
 
 @application.route('/login', methods=['POST'])
