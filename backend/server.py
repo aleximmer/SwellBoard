@@ -1,6 +1,7 @@
 import json
 from flask import jsonify
 from pymongo import MongoClient
+import gridfs
 from auxiliary.nocache import nocache
 from auxiliary.cookie import Cookie
 from auxiliary.supervisor import Supervisor
@@ -112,7 +113,7 @@ def get_runs():
     if valid_request(request.path, cookie, args) == False:
         return "Invalid request\n", 400
 
-    runs = client['Swell']['runs'].find({'config.method_tag': args['model_name']}, {'config': 1})
+    runs = db['Swell']['runs'].find({'config.method_tag': args['model_name']}, {'config': 1})
     runs = list(runs)
 
     return encode_response(json_response(runs), cookie)
@@ -189,9 +190,9 @@ def get_artifacts():
     if valid_request(request.path, cookie, args) == False:
         return "Invalid request\n", 400
 
-    fs = gridfs.GridFS(client['Swell'])
+    fs = gridfs.GridFS(db['Swell'])
     artifacts = []
-    for file in client['Swell']['runs'].find_one({'_id': args['run_id']}, {'artifacts'})['artifacts']:
+    for file in db['Swell']['runs'].find_one({'_id': args['run_id']}, {'artifacts'})['artifacts']:
         if '.png' in file['name']:
             fig = fs.get(file['file_id']).read()
     artifacts.append(fig)
