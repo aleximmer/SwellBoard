@@ -1,4 +1,5 @@
 import json
+import base64
 from flask import jsonify
 from pymongo import MongoClient
 import gridfs
@@ -213,7 +214,7 @@ def get_artifacts():
     for file in db['Swell']['runs'].find_one({'_id': int(args['run_id'])}, {'artifacts'})['artifacts']:
         if '.png' in file['name']:
             fig = fs.get(file['file_id']).read()
-            artifacts[file['name']] = str(fig)
+            artifacts[file['name']] = str(base64.b64encode(fig))
 
     return encode_response(json_response(artifacts), cookie)
 
