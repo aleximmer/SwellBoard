@@ -1,9 +1,12 @@
 import pymongo
 import gridfs
 
-uri = ''
+uri = 'mongodb://swell:swellboard4tw@188.166.161.172/Swell'
 client = pymongo.MongoClient(uri)
 
+
+metric_names = client['Swell']['runs'].find_one({'_id': 1}, {'info': 1})
+print('TEST', set([i['name'] for i in metric_names['info']['metrics']]))
 
 print('/runs')
 # /runs
@@ -53,15 +56,18 @@ print('/params/scalars', result)
 
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF
-# BayO given run_ids, params (of config), and result_names
 import numpy as np
+
+# BayO given params (of config), and result_names as for example just below
+params = ['batch_size', 'step_size', 'kappa']
+results = ['Loss Test', 'Acc Test', 'Active Paths']
+
+# does the rest
 lin = lambda x: np.nan if x is None else x
-log = lambda x: np.nan if x is None else np.log(x)
 neglin = lambda x: np.nan if x is None else -lin(x)
-neglog = lambda x: np.nan if x is None else -log(x)
 ptrans = {
-    'kappa': log,
-    'step_size': log,
+    'kappa': lin,
+    'step_size': lin,
     'batch_size': lin,
 }
 ttrans = {
@@ -85,19 +91,14 @@ def sampler(params, n_samples, min_max):
     psample = {
         'kappa': np.random.randint(min_k, max_k, n_samples),
         'step_size': min_lr + np.random.rand(n_samples) * (max_lr - min_lr),
-        'batch_size': np.random.randint(min_b, max_b, n_samples)
+        'batch_size': np.random.randint(min_b, max_b+1, n_samples)
     }
     samples = [psample[k] for k in params]
     return np.vstack(samples).T
 
-
-run_ids = [2, 3, 4, 5]
-params = ['batch_size', 'step_size', 'kappa']
-results = ['Loss Test', 'Acc Test', 'Active Paths']
-runs = list()
-for run_id in run_ids:
-    runs.append(client['Swell']['runs'].find_one({'_id': run_id}, {'result': 1, 'config': 1}))
-models = set([e['config']['method_tag'] for e in runs])
+runs = list(client['Swell']['runs'].find({'status': 'COMPLETED'},
+                                         {'config': 1, 'result': 1}))
+models = ['FW-NN', 'NN', 'PSGD-NN']
 opt_set = dict()
 for m in models:
     m_runs = [e for e in runs if e['config']['method_tag'] == m]
@@ -121,11 +122,18 @@ for m in models:
     rbf = RBF(length_scale=1.0)
     gp = GaussianProcessRegressor(kernel=rbf)
     gp.fit(X, y)
-    samples = sampler(np.array(params)[mask], 1000)
+    min_max = {k: {'min': xmi, 'max': xma} for k, xmi, xma
+               in zip(np.array(params)[mask], xmin, xmax)}
+    samples = sampler(np.array(params)[mask], 1000, min_max)
     y_hat = gp.predict((samples - x_mu) / x_std)
     opt_ix = np.argmax(np.sum(y_hat, axis=1))
-    opt_set[m] = ((samples[opt_ix] * x_std + x_mu), y_hat[opt_ix] * y_std + y_mu)
-
-    print(X, y)
+    y_wt = np.array([(-1 if ttrans[res] == neglin else 1) for res in results])
+    y_opt = y_wt * y_hat[opt_ix] * y_std + y_mu
+    suboptset = {r: y_opt[i] for i, r in enumerate(results)}
+    x_opt = samples[opt_ix] * x_std + x_mu
+    prams = np.array(params)[mask]
+    for i, p in enumerate(prams):
+        suboptset[p] = x_opt[i]
+    opt_set[m] = suboptset
     print(opt_set[m])
-    print('')
+# return opt_set
