@@ -1,5 +1,6 @@
 import json
 import base64
+from auxiliary.private import mongo_uri, db_name
 from flask import jsonify
 from pymongo import MongoClient
 import gridfs
@@ -25,12 +26,7 @@ application.config.from_object(__name__)
 cors = CORS(application)
 
 # Configure Database
-mongo_url = "mongodb://{}:{}@{}/{}".format(
-    DB_CONFIG['user'],
-    DB_CONFIG['pass'],
-    DB_CONFIG['host'],
-    DB_CONFIG['name']
-)
+mongo_url = mongo_uri
 db = MongoClient(mongo_url)
 #application.config["APPLICATION_ROOT"] = '/api/1.0'
 
@@ -106,7 +102,7 @@ def get_models():
     if valid_request(request.path, cookie, args) == False:
         return "Invalid request\n", 400
 
-    models = db['Swell']['runs'].find({}, {'config': 1})
+    models = db[db_name]['runs'].find({}, {'config': 1})
     models = set([i['config']['method_tag'] for i in models])
 
     return encode_response(json_response(models), cookie)
@@ -129,7 +125,7 @@ def get_runs():
     if valid_request(request.path, cookie, args) == False:
         return "Invalid request\n", 400
 
-    runs = db['Swell']['runs'].find({'config.method_tag': args['model_name']}, {'config': 1, 'heartbeat': 1})
+    runs = db[db_name]['runs'].find({'config.method_tag': args['model_name']}, {'config': 1, 'heartbeat': 1})
     runs = list(runs)
 
     return encode_response(json_response(runs), cookie)
@@ -151,7 +147,7 @@ def get_metric_names():
     if valid_request(request.path, cookie, args) == False:
         return "Invalid request\n", 400
 
-    metric_names = db['Swell']['runs'].find_one({'_id': int(args['run_id'])}, {'info': 1})
+    metric_names = db[db_name]['runs'].find_one({'_id': int(args['run_id'])}, {'info': 1})
     metric_names = set([i['name'] for i in metric_names['info']['metrics']])
 
     return encode_response(json_response(metric_names), cookie)
@@ -179,8 +175,8 @@ def get_metric_scalars():
     run_id = int(args['run_id'])
     metric_name = args['metric_name']
     result = dict()
-    run_metric = db['Swell']['metrics'].find_one({'run_id': run_id, 'name': metric_name})
-    run = db['Swell']['runs'].find_one({'_id': run_id}, {'config'})['config']['method_tag']
+    run_metric = db[db_name]['metrics'].find_one({'run_id': run_id, 'name': metric_name})
+    run = db[db_name]['runs'].find_one({'_id': run_id}, {'config'})['config']['method_tag']
     run_model_name = run + '-' + str(run_id)
     result['name'] = run_model_name
     result['series'] = [{'name': step, 'value': val, 'run_id': run_id}
@@ -205,7 +201,7 @@ def get_result_names():
     if valid_request(request.path, cookie, args) == False:
         return "Invalid request\n", 400
 
-    result_names = db['Swell']['runs'].find_one({'_id': int(args['run_id'])}, {'result': 1})['result'].keys()
+    result_names = db[db_name]['runs'].find_one({'_id': int(args['run_id'])}, {'result': 1})['result'].keys()
     result_names = list(result_names)
 
     return encode_response(json_response(result_names), cookie)
@@ -231,9 +227,9 @@ def get_result_scalars():
         return "Invalid request\n", 400
 
     run_metric = dict()
-    run_metric['value'] = db['Swell']['runs'].find_one({'_id': int(args['run_id'])}, {'result': 1})['result'][
+    run_metric['value'] = db[db_name]['runs'].find_one({'_id': int(args['run_id'])}, {'result': 1})['result'][
         args['result_name']]
-    run_metric['name'] = db['Swell']['runs'].find_one({'_id': int(args['run_id'])}, {'config': 1})['config'][
+    run_metric['name'] = db[db_name]['runs'].find_one({'_id': int(args['run_id'])}, {'config': 1})['config'][
                              'method_tag'] + '-{}'.format(args['run_id'])
     return encode_response(json_response(run_metric), cookie)
 
@@ -255,7 +251,7 @@ def get_param_names():
     if valid_request(request.path, cookie, args) == False:
         return "Invalid request\n", 400
 
-    param_names = db['Swell']['runs'].find_one({'_id': int(args['run_id'])}, {'config': 1})
+    param_names = db[db_name]['runs'].find_one({'_id': int(args['run_id'])}, {'config': 1})
 
     return encode_response(json_response(param_names), cookie)
 
@@ -279,7 +275,7 @@ def get_param_scalars():
     if valid_request(request.path, cookie, args) == False:
         return "Invalid request\n", 400
 
-    param_scalars = db['Swell']['runs'].find_one({'_id': int(args['run_id'])}, {'config': 1})['config'][args['param_name']]
+    param_scalars = db[db_name]['runs'].find_one({'_id': int(args['run_id'])}, {'config': 1})['config'][args['param_name']]
     param_scalars = [param_scalars]
 
     return encode_response(json_response(param_scalars), cookie)
@@ -302,9 +298,9 @@ def get_artifacts():
     if valid_request(request.path, cookie, args) == False:
         return "Invalid request\n", 400
 
-    fs = gridfs.GridFS(db['Swell'])
+    fs = gridfs.GridFS(db[db_name])
     artifacts = {}
-    for file in db['Swell']['runs'].find_one({'_id': int(args['run_id'])}, {'artifacts'})['artifacts']:
+    for file in db[db_name]['runs'].find_one({'_id': int(args['run_id'])}, {'artifacts'})['artifacts']:
         if '.png' in file['name']:
             fig = fs.get(file['file_id']).read()
             artifacts[file['name']] = str(base64.b64encode(fig))

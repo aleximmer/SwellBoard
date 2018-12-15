@@ -161,7 +161,7 @@
         <mat-sidenav-content hasBackdrop="false">
             <div style="margin-left: 350px; margin-right: 350px">
                 <mat-divider #swellcontainer></mat-divider>
-                <mat-card style="margin: 2rem;">
+                <mat-card style="margin: 2rem;" [style.visibility]="isVisible ? 'visible' : 'hidden'">
                     <div style="background-color: #333;">
                         <h3 style="margin: 0px !important; padding-left: 2rem; padding-top: 2rem;">Comparison Plot</h3>
                         <div id="metrics_line" style="height:400px;"></div>

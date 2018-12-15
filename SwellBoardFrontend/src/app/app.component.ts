@@ -41,7 +41,7 @@ export class AppComponent {
   @ViewChild('swellcontainer', { read: ViewContainerRef }) _vcr;
 
   linePlots = {};
-  isVisible;
+  isVisible = false;
   parallelPlot;
 
   mobileQuery: MediaQueryList;
@@ -296,9 +296,9 @@ export class AppComponent {
     this._mobileQueryListener = () => changeDetectorRef.detectChanges();
     this.mobileQuery.addListener(this._mobileQueryListener);
 
-    this.apiService.getArtifacts(2).subscribe((response) => {
-      const artifact_keys = Object.keys(response);
-    });
+    // this.apiService.getArtifacts(2).subscribe((response) => {
+    //   const artifact_keys = Object.keys(response);
+    // });
   }
 
   public addComp() {
@@ -312,9 +312,9 @@ export class AppComponent {
   ngOnInit(): void {
 
     this.parallelPlot = this.echarts.init(document.getElementById('metrics_line'), 'dark');
-    this.isVisible = false;
     // initialize echarts instance with prepared DOM
     this.apiService.getModels().subscribe((response) => {
+      console.log(response);
       this.modelDataSource = new MatTableDataSource<Model>();
       this.modelDataSource.paginator = this.modelPaginator;
       response['data'].forEach((m) => {
