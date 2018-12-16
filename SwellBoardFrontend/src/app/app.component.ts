@@ -211,13 +211,12 @@ export class AppComponent {
       series: []
     };
 
-    const params = this.paramsSelection.selected;
-    const metrics = this.metricSelection.selected;
+    const params = this.paramsSelection.selected.sort();
+    const metrics = this.metricSelection.selected.sort();
     const experiments = this.experimentSelection.selected.map((e) => e._id);
     const strexperiments = this.experimentSelection.selected.map((e) => e._id.toString());
     option.legend.data = [...strexperiments];
 
-    console.log(option.legend);
     metrics.forEach((p) => {
       option.parallelAxis.push({ dim: metrics.indexOf(p), name: p });
       option.parallelAxis = [...option.parallelAxis];
@@ -261,7 +260,6 @@ export class AppComponent {
             run['data'] = [head((<any>run['data']))];
             option.series[experiments.indexOf(e._id)] = run;
             option.series = [...option.series];
-            console.log(option.series);
             this.parallelPlot.setOption(option);
           }
         });
@@ -282,7 +280,6 @@ export class AppComponent {
             run['data'] = [head((<any>run['data']))];
             option.series[experiments.indexOf(e._id)] = run;
             option.series = [...option.series];
-            console.log(option.series);
             this.parallelPlot.setOption(option);
           }
         });
